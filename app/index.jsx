@@ -10,6 +10,7 @@ import {
     StyleSheet,
     Text,
     View,
+    Image,
 } from 'react-native';
 import ThemedView from '../components/ThemedView';
 import Spacer from '../components/Spacer';
@@ -106,6 +107,7 @@ export default function App() {
                     showsVerticalScrollIndicator={false}
                 >
                     <AppCard>
+                    {/* <Image source={require('../assets/EEU logo.png')} style={{ width: 0, height: 0 }} /> */}
                     <View style={styles.logoBox}>
                         <Text style={styles.logoText}>EEU</Text>
                     </View>
