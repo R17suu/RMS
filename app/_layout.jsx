@@ -28,6 +28,8 @@ export default function RootLayout() {
                 }}
             >
                 <Stack.Screen name="index" options={{ title: 'Sign In' }} />
+                <Stack.Screen name="(clerk)" options={{ title: 'Clerk Module' }} />
+                <Stack.Screen name="(sadmin)" options={{ title: 'Superadmin' }} />
             </Stack>
         </>
     );

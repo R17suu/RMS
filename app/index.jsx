@@ -1,5 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
+import { useRouter } from 'expo-router';
 import { useRef, useState } from 'react';
 import {
     Keyboard,
@@ -22,6 +23,7 @@ import { auth } from '../FirebaseConfig';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 
 export default function App() {
+    const router = useRouter();
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [rememberMe, setRememberMe] = useState(false);
@@ -75,7 +77,7 @@ export default function App() {
         try {
             const userCredential = await signInWithEmailAndPassword(auth, username, password);
             console.log('User signed in:', userCredential.user);
-            showSuccessToast('Signed in successfully. Welcome back!');
+            router.replace('/(sadmin)/dashboard');
         } catch (error) {
             console.error('Error signing in:', error);
             showErrorToast(getSignInErrorMessage(error));
@@ -116,7 +118,7 @@ export default function App() {
                     {/* <Text style={styles.subtitle}>Clerk Module - Sign In</Text> */}
                     <Text style={styles.helperText}>Use your official account to continue.</Text>
 
-                    <Spacer height={20}/>
+                    <Spacer height={16}/>
 
                     <View style={styles.inputGroup}>
                         <AppTextField
@@ -182,7 +184,7 @@ export default function App() {
                             </Pressable>
                         </View>
 
-                    <Spacer height={20}/>
+                    <Spacer height={16}/>
 
                     <AppButton
                         title={isSigningIn ? 'Signing In...' : 'Sign In'}
@@ -190,7 +192,7 @@ export default function App() {
                         disabled={isSigningIn}
                     />
 
-                    <Spacer height={20}/>
+                    <Spacer height={16}/>
                     
                     <Text style={styles.footer}>Economic Enterprise Unit © 2026</Text>
                 </AppCard>
