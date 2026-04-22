@@ -1,4 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
+import { BlurView } from 'expo-blur';
 import { useRef, useState } from 'react';
 import {
     Keyboard,
@@ -8,12 +9,14 @@ import {
     ScrollView,
     StyleSheet,
     Text,
-    TextInput,
     View,
 } from 'react-native';
 import ThemedView from '../components/ThemedView';
 import Spacer from '../components/Spacer';
 import AppToast from '../components/AppToast';
+import AppCard from '../components/AppCard';
+import AppButton from '../components/AppButton';
+import AppTextField from '../components/AppTextField';
 import { auth } from '../FirebaseConfig';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 
@@ -90,6 +93,8 @@ export default function App() {
 
             <View style={[styles.glow, styles.glowTop]} />
             <View style={[styles.glow, styles.glowBottom]} />
+            <BlurView intensity={65} tint="dark" style={[styles.glowBlur, styles.glowBlurTop]} />
+            <BlurView intensity={70} tint="dark" style={[styles.glowBlur, styles.glowBlurBottom]} />
 
             <KeyboardAvoidingView
                 behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -100,7 +105,7 @@ export default function App() {
                     keyboardShouldPersistTaps="handled"
                     showsVerticalScrollIndicator={false}
                 >
-                    <View style={styles.card}>
+                    <AppCard>
                     <View style={styles.logoBox}>
                         <Text style={styles.logoText}>EEU</Text>
                     </View>
@@ -112,54 +117,51 @@ export default function App() {
                     <Spacer height={20}/>
 
                     <View style={styles.inputGroup}>
-                        <Text style={styles.inputLabel}>Email Address</Text>
-                        <View style={styles.inputShell}>
-                            <Ionicons name="mail" size={18} color="#f59e0b" />
-                            <TextInput
-                                style={styles.input}
-                                value={username}
-                                onChangeText={setUsername}
-                                placeholder="you@company.com"
-                                placeholderTextColor="#667693"
-                                autoCapitalize="none"
-                                autoCorrect={false}
-                                keyboardType="email-address"
-                                textContentType="emailAddress"
-                                returnKeyType="next"
-                                onSubmitEditing={() => passwordInputRef.current?.focus()}
-                            />
-                        </View>
+                        <AppTextField
+                            label="Email Address"
+                            leftIconName="mail"
+                            leftIconColor="#f59e0b"
+                            value={username}
+                            onChangeText={setUsername}
+                            placeholder="you@company.com"
+                            placeholderTextColor="#667693"
+                            autoCapitalize="none"
+                            autoCorrect={false}
+                            keyboardType="email-address"
+                            textContentType="emailAddress"
+                            returnKeyType="next"
+                            onSubmitEditing={() => passwordInputRef.current?.focus()}
+                        />
 
-                        <Text style={styles.inputLabel}>Password</Text>
-                        <View style={styles.inputShell}>
-                            <Ionicons name="lock-closed" size={18} color="#8ca0be" />
-                            <TextInput
-                                ref={passwordInputRef}
-                                style={styles.input}
-                                value={password}
-                                onChangeText={setPassword}
-                                placeholder="Password"
-                                placeholderTextColor="#667693"
-                                secureTextEntry={!showPassword}
-                                autoCapitalize="none"
-                                autoCorrect={false}
-                                textContentType="password"
-                                returnKeyType="go"
-                                onSubmitEditing={handleSignIn}
-                            />
-                            <Pressable
-                                onPress={() => setShowPassword((prev) => !prev)}
-                                hitSlop={10}
-                                accessibilityRole="button"
-                                accessibilityLabel={showPassword ? 'Hide password' : 'Show password'}
-                            >
-                                <Ionicons
-                                    name={showPassword ? 'eye-off' : 'eye'}
-                                    size={18}
-                                    color="#7f91af"
-                                />
-                            </Pressable>
-                        </View>
+                        <AppTextField
+                            ref={passwordInputRef}
+                            label="Password"
+                            leftIconName="lock-closed"
+                            value={password}
+                            onChangeText={setPassword}
+                            placeholder="Password"
+                            placeholderTextColor="#667693"
+                            secureTextEntry={!showPassword}
+                            autoCapitalize="none"
+                            autoCorrect={false}
+                            textContentType="password"
+                            returnKeyType="go"
+                            onSubmitEditing={handleSignIn}
+                            rightAccessory={(
+                                <Pressable
+                                    onPress={() => setShowPassword((prev) => !prev)}
+                                    hitSlop={10}
+                                    accessibilityRole="button"
+                                    accessibilityLabel={showPassword ? 'Hide password' : 'Show password'}
+                                >
+                                    <Ionicons
+                                        name={showPassword ? 'eye-off' : 'eye'}
+                                        size={18}
+                                        color="#7f91af"
+                                    />
+                                </Pressable>
+                            )}
+                        />
                     </View>
 
                         <View style={styles.optionsRow}>
@@ -180,19 +182,16 @@ export default function App() {
 
                     <Spacer height={20}/>
 
-                    <Pressable
-                        style={[styles.button, isSigningIn && styles.buttonDisabled]}
+                    <AppButton
+                        title={isSigningIn ? 'Signing In...' : 'Sign In'}
                         onPress={handleSignIn}
                         disabled={isSigningIn}
-                    >
-                        <Text style={styles.buttonText}>{isSigningIn ? 'Signing In...' : 'Sign In'}</Text>
-                        <Ionicons name="arrow-forward" size={20} color="#111827" />
-                    </Pressable>
+                    />
 
                     <Spacer height={20}/>
                     
                     <Text style={styles.footer}>Economic Enterprise Unit © 2026</Text>
-                </View>
+                </AppCard>
                 </ScrollView>
             </KeyboardAvoidingView>
         </ThemedView>
@@ -219,11 +218,27 @@ const styles = StyleSheet.create({
         top: -80,
         left: 28,
         backgroundColor: '#f59e0b',
+
     },
     glowBottom: {
         bottom: -140,
         right: -40,
         backgroundColor: '#18358a',
+    },
+    glowBlur: {
+        position: 'absolute',
+        width: 420,
+        height: 420,
+        borderRadius: 999,
+        opacity: 0.8,
+    },
+    glowBlurTop: {
+        top: -120,
+        left: 0,
+    },
+    glowBlurBottom: {
+        bottom: -180,
+        right: -80,
     },
     contentWrap: {
         width: '100%',
@@ -234,17 +249,6 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         paddingBottom: 20,
-    },
-    card: {
-        width: '100%',
-        maxWidth: 390,
-        borderRadius: 28,
-        borderWidth: 1,
-        borderColor: 'rgba(255,255,255,0.09)',
-        backgroundColor: 'rgba(13,19,38,0.72)',
-        paddingHorizontal: 28,
-        paddingVertical: 24,
-        alignItems: 'stretch',
     },
     logoBox: {
         width: 66,
@@ -286,28 +290,6 @@ const styles = StyleSheet.create({
         width: '100%',
         gap: 12,
     },
-    inputLabel: {
-        color: '#a8bbd7',
-        fontSize: 13,
-        fontWeight: '700',
-        marginBottom: -4,
-    },
-    inputShell: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: 'rgba(28,37,58,0.95)',
-        borderRadius: 14,
-        borderWidth: 1,
-        borderColor: 'rgba(255,255,255,0.08)',
-        paddingHorizontal: 14,
-        height: 58,
-    },
-    input: {
-        flex: 1,
-        marginLeft: 10,
-        color: '#d6e0f2',
-        fontSize: 17,
-    },
     optionsRow: {
         marginTop: 14,
         marginBottom: 16,
@@ -343,25 +325,6 @@ const styles = StyleSheet.create({
         color: '#f7c35d',
         fontSize: 14,
         fontWeight: '700',
-    },
-    button: {
-        width: '100%',
-        backgroundColor: '#f59e0b',
-        borderRadius: 14,
-        height: 62,
-        flexDirection: 'row',
-        justifyContent: 'center',
-        alignItems: 'center',
-        gap: 10,
-        marginBottom: 20,
-    },
-    buttonDisabled: {
-        opacity: 0.7,
-    },
-    buttonText: {
-        color: '#111827',
-        fontWeight: '800',
-        fontSize: 18,
     },
     footer: {
         color: '#627593',
