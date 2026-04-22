@@ -1,15 +1,70 @@
 import { useRouter } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 import { signOut } from 'firebase/auth';
 import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import AppButton from '../../components/AppButton';
+import AppCard from '../../components/AppCard';
+import AppTextField from '../../components/AppTextField';
+import AppToast from '../../components/AppToast';
 import DashboardHeader from '../../components/sadmin/DashboardHeader';
 import ProfileMenu from '../../components/sadmin/ProfileMenu';
 import { auth } from '../../FirebaseConfig';
 import ThemedView from '../../components/ThemedView';
 
+const AVAILABLE_ROLES = ['System Auditor', 'Support Supervisor', 'Operations Manager', 'Security Admin'];
+
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+const generateRandomPassword = (length = 12) => {
+	const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%';
+	let passwordValue = '';
+	for (let index = 0; index < length; index += 1) {
+		passwordValue += chars.charAt(Math.floor(Math.random() * chars.length));
+	}
+	return passwordValue;
+};
+
 export default function SuperAdminUserManagementScreen() {
 	const router = useRouter();
 	const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+	const [fullName, setFullName] = useState('');
+	const [email, setEmail] = useState('');
+	const [password, setPassword] = useState('');
+	const [confirmPassword, setConfirmPassword] = useState('');
+	const [showPassword, setShowPassword] = useState(false);
+	const [selectedRole, setSelectedRole] = useState('System Auditor');
+	const [searchTerm, setSearchTerm] = useState('');
+	const [isCreatingUser, setIsCreatingUser] = useState(false);
+	const [toast, setToast] = useState({ message: '', type: 'error' });
+	const [editingUserId, setEditingUserId] = useState(null);
+	const [draftRole, setDraftRole] = useState('');
+	const [editingPasswordUserId, setEditingPasswordUserId] = useState(null);
+	const [passwordDraft, setPasswordDraft] = useState('');
+	const [passwordConfirmDraft, setPasswordConfirmDraft] = useState('');
+	const [showEditPassword, setShowEditPassword] = useState(false);
+	const [users, setUsers] = useState([
+		{
+			id: 'USR-001',
+			fullName: 'Maria Dela Cruz',
+			email: 'maria.dc@eeu.local',
+			role: 'System Auditor',
+			status: 'Active',
+			lastActive: '3m ago',
+			hasPassword: true,
+			passwordUpdated: '2d ago',
+		},
+		{
+			id: 'USR-002',
+			fullName: 'John Ramirez',
+			email: 'john.ramirez@eeu.local',
+			role: 'Support Supervisor',
+			status: 'Disabled',
+			lastActive: '2d ago',
+			hasPassword: true,
+			passwordUpdated: '5d ago',
+		},
+	]);
 
 	const openProfileMenu = () => {
 		setIsProfileMenuOpen(true);
@@ -29,8 +84,161 @@ export default function SuperAdminUserManagementScreen() {
 		}
 	};
 
+	const showToast = (message, type = 'error') => {
+		setToast({ message, type });
+	};
+
+	const handleCreateUser = async () => {
+		const normalizedName = fullName.trim();
+		const normalizedEmail = email.trim().toLowerCase();
+
+		if (!normalizedName) {
+			showToast('Full name is required.');
+			return;
+		}
+
+		if (!normalizedEmail) {
+			showToast('Email address is required.');
+			return;
+		}
+
+		if (!EMAIL_PATTERN.test(normalizedEmail)) {
+			showToast('Please enter a valid email address.');
+			return;
+		}
+
+		if (!password) {
+			showToast('Password is required.');
+			return;
+		}
+
+		if (password.length < 8) {
+			showToast('Password must be at least 8 characters.');
+			return;
+		}
+
+		if (password !== confirmPassword) {
+			showToast('Password and confirmation do not match.');
+			return;
+		}
+
+		const duplicate = users.some((user) => user.email.toLowerCase() === normalizedEmail);
+
+		if (duplicate) {
+			showToast('A user with that email already exists.');
+			return;
+		}
+
+		setIsCreatingUser(true);
+
+		try {
+			const newUser = {
+				id: `USR-${String(users.length + 1).padStart(3, '0')}`,
+				fullName: normalizedName,
+				email: normalizedEmail,
+				role: selectedRole,
+				status: 'Active',
+				lastActive: 'just now',
+				hasPassword: true,
+			};
+
+			setUsers((prev) => [newUser, ...prev]);
+			setFullName('');
+			setEmail('');
+			setPassword('');
+			setConfirmPassword('');
+			setSelectedRole('System Auditor');
+			showToast('User created successfully.', 'success');
+		} finally {
+			setIsCreatingUser(false);
+		}
+	};
+
+	const toggleUserStatus = (userId) => {
+		setUsers((prev) =>
+			prev.map((user) => {
+				if (user.id !== userId) {
+					return user;
+				}
+
+				if (user.status === 'Archived') {
+					return user;
+				}
+
+				return {
+					...user,
+					status: user.status === 'Active' ? 'Disabled' : 'Active',
+				};
+			})
+		);
+	};
+
+	const archiveUser = (userId) => {
+		setUsers((prev) =>
+			prev.map((user) =>
+				user.id === userId ? { ...user, status: 'Archived' } : user
+			)
+		);
+		showToast('User archived.', 'success');
+	};
+
+	const unarchiveUser = (userId) => {
+		setUsers((prev) =>
+			prev.map((user) =>
+				user.id === userId ? { ...user, status: 'Active' } : user
+			)
+		);
+		showToast('User unarchived.', 'success');
+	};
+
+	const deleteUser = (userId) => {
+		setUsers((prev) => prev.filter((user) => user.id !== userId));
+		if (editingUserId === userId) {
+			cancelRoleEdit();
+		}
+		showToast('User deleted.', 'success');
+	};
+
+	const startRoleEdit = (user) => {
+		setEditingUserId(user.id);
+		setDraftRole(user.role);
+	};
+
+	const cancelRoleEdit = () => {
+		setEditingUserId(null);
+		setDraftRole('');
+	};
+
+	const saveUserRole = (userId) => {
+		setUsers((prev) =>
+			prev.map((user) => (user.id === userId ? { ...user, role: draftRole } : user))
+		);
+
+		showToast('User role updated.', 'success');
+		cancelRoleEdit();
+	};
+
+	const filteredUsers = users.filter((user) => {
+		const query = searchTerm.trim().toLowerCase();
+		if (!query) {
+			return true;
+		}
+
+		return (
+			user.fullName.toLowerCase().includes(query) ||
+			user.email.toLowerCase().includes(query) ||
+			user.role.toLowerCase().includes(query)
+		);
+	});
+
 	return (
 		<ThemedView style={styles.container} safe>
+			<AppToast
+				message={toast.message}
+				type={toast.type}
+				onHide={() => setToast((prev) => ({ ...prev, message: '' }))}
+			/>
+
 			{isProfileMenuOpen ? <Pressable style={styles.overlay} onPress={closeProfileMenu} /> : null}
 
 			{isProfileMenuOpen ? (
@@ -45,11 +253,228 @@ export default function SuperAdminUserManagementScreen() {
 					title="User Management"
 					subtitle="Admin Module"
 				/>
-				<Text style={styles.subtitle}>Create, update, disable, and monitor user accounts.</Text>
 
-				<View style={styles.panel}>
-					<Text style={styles.panelText}>No users loaded yet.</Text>
-				</View>
+				<AppCard style={styles.formCard}>
+					<Text style={styles.cardTitle}>Create User</Text>
+					<Text style={styles.subtitle}>Register a user account and assign an initial role.</Text>
+
+					<View style={styles.formFields}>
+						<AppTextField
+							label="Full Name"
+							leftIconName="person-outline"
+							value={fullName}
+							onChangeText={setFullName}
+							placeholder="e.g. Jane Santos"
+							placeholderTextColor="#667693"
+						/>
+						<AppTextField
+							label="Email Address"
+							leftIconName="mail-outline"
+							value={email}
+							onChangeText={setEmail}
+							placeholder="jane@eeu.local"
+							placeholderTextColor="#667693"
+							autoCapitalize="none"
+							autoCorrect={false}
+							keyboardType="email-address"
+						/>
+						<AppTextField
+							label="Password"
+							leftIconName="lock-closed-outline"
+							value={password}
+							onChangeText={setPassword}
+							placeholder="Create a secure password"
+							placeholderTextColor="#667693"
+							secureTextEntry={!showPassword}
+							autoCapitalize="none"
+							autoCorrect={false}
+							rightAccessory={(
+								<Pressable onPress={() => setShowPassword((prev) => !prev)}>
+									<Ionicons name={showPassword ? 'eye-off-outline' : 'eye-outline'} size={18} color="#8ea3c4" />
+								</Pressable>
+							)}
+						/>
+						<AppTextField
+							label="Confirm Password"
+							leftIconName="lock-closed-outline"
+							value={confirmPassword}
+							onChangeText={setConfirmPassword}
+							placeholder="Re-enter password"
+							placeholderTextColor="#667693"
+							secureTextEntry={!showPassword}
+							autoCapitalize="none"
+							autoCorrect={false}
+						/>
+					</View>
+
+					<Text style={styles.fieldLabel}>Assign Role</Text>
+					<View style={styles.rolesWrap}>
+						{AVAILABLE_ROLES.map((role) => {
+							const isSelected = selectedRole === role;
+
+							return (
+								<Pressable
+									key={role}
+									onPress={() => setSelectedRole(role)}
+									style={[styles.roleChip, isSelected && styles.roleChipSelected]}
+								>
+									<Text style={[styles.roleChipText, isSelected && styles.roleChipTextSelected]}>
+										{role}
+									</Text>
+								</Pressable>
+							);
+						})}
+					</View>
+
+					<AppButton
+						title={isCreatingUser ? 'Creating User...' : 'Create User'}
+						onPress={handleCreateUser}
+						disabled={isCreatingUser}
+						iconName="person-add-outline"
+						style={styles.createButton}
+					/>
+				</AppCard>
+
+				<AppCard style={styles.usersCard}>
+					<Text style={styles.cardTitle}>User Directory ({filteredUsers.length})</Text>
+
+					<AppTextField
+						label="Search"
+						leftIconName="search-outline"
+						value={searchTerm}
+						onChangeText={setSearchTerm}
+						placeholder="Find by name, email, or role"
+						placeholderTextColor="#667693"
+						containerStyle={styles.searchField}
+					/>
+
+					{filteredUsers.length === 0 ? (
+						<Text style={styles.emptyText}>No users matched your search.</Text>
+					) : null}
+
+					{filteredUsers.map((user) => {
+						const isEditing = editingUserId === user.id;
+
+						return (
+							<View key={user.id} style={styles.userItem}>
+								<View style={styles.userHeadRow}>
+									<View>
+										<Text style={styles.userName}>{user.fullName}</Text>
+										<Text style={styles.userEmail}>{user.email}</Text>
+									</View>
+
+									<View
+										style={[
+											styles.statusPill,
+											user.status === 'Active'
+												? styles.statusActive
+												: user.status === 'Archived'
+													? styles.statusArchived
+													: styles.statusDisabled,
+										]}
+									>
+										<Text
+											style={[
+												styles.statusText,
+												user.status === 'Active'
+													? styles.statusTextActive
+													: user.status === 'Archived'
+														? styles.statusTextArchived
+														: styles.statusTextDisabled,
+											]}
+										>
+											{user.status}
+										</Text>
+									</View>
+								</View>
+
+								<View style={styles.metaRow}>
+									<Text style={styles.metaLabel}>Role: </Text>
+									<Text style={styles.metaValue}>{user.role}</Text>
+									<Text style={styles.metaLabel}> • Password: </Text>
+									<Text style={styles.metaValue}>{user.hasPassword ? 'Set' : 'Not Set'}</Text>
+									<Text style={styles.metaLabel}> • Last active: </Text>
+									<Text style={styles.metaValue}>{user.lastActive}</Text>
+								</View>
+
+								<View style={styles.actionRow}>
+									{user.status !== 'Archived' ? (
+										<Pressable
+											onPress={() => toggleUserStatus(user.id)}
+											style={styles.secondaryAction}
+										>
+											<Text style={styles.secondaryActionText}>
+												{user.status === 'Active' ? 'Disable' : 'Enable'}
+											</Text>
+										</Pressable>
+									) : (
+										<Pressable
+											onPress={() => unarchiveUser(user.id)}
+											style={styles.secondaryAction}
+										>
+											<Text style={styles.secondaryActionText}>Unarchive</Text>
+										</Pressable>
+									)}
+
+									<Pressable
+										onPress={() => startRoleEdit(user)}
+										style={styles.secondaryAction}
+									>
+										<Text style={styles.secondaryActionText}>Change Role</Text>
+									</Pressable>
+
+									{user.status !== 'Archived' ? (
+										<Pressable
+											onPress={() => archiveUser(user.id)}
+											style={[styles.secondaryAction, styles.archiveAction]}
+										>
+											<Text style={[styles.secondaryActionText, styles.archiveActionText]}>Archive</Text>
+										</Pressable>
+									) : null}
+
+									<Pressable
+										onPress={() => deleteUser(user.id)}
+										style={[styles.secondaryAction, styles.deleteAction]}
+									>
+										<Text style={[styles.secondaryActionText, styles.deleteActionText]}>Delete</Text>
+									</Pressable>
+								</View>
+
+								{isEditing ? (
+									<View style={styles.editPanel}>
+										<Text style={styles.editPanelTitle}>Assign New Role</Text>
+										<View style={styles.rolesWrap}>
+											{AVAILABLE_ROLES.map((role) => {
+												const isSelected = draftRole === role;
+
+												return (
+													<Pressable
+														key={role}
+														onPress={() => setDraftRole(role)}
+														style={[styles.roleChip, isSelected && styles.roleChipSelected]}
+													>
+														<Text style={[styles.roleChipText, isSelected && styles.roleChipTextSelected]}>
+															{role}
+														</Text>
+													</Pressable>
+												);
+											})}
+										</View>
+
+										<View style={styles.editActionsRow}>
+											<Pressable style={styles.cancelButton} onPress={cancelRoleEdit}>
+												<Text style={styles.cancelButtonText}>Cancel</Text>
+											</Pressable>
+											<Pressable style={styles.saveButton} onPress={() => saveUserRole(user.id)}>
+												<Text style={styles.saveButtonText}>Save</Text>
+											</Pressable>
+										</View>
+									</View>
+								) : null}
+							</View>
+						);
+					})}
+				</AppCard>
 			</ScrollView>
 		</ThemedView>
 	);
@@ -76,20 +501,224 @@ const styles = StyleSheet.create({
 		paddingBottom: 24,
 		gap: 12,
 	},
+	formCard: {
+		width: '100%',
+		maxWidth: '100%',
+		alignSelf: 'stretch',
+		borderRadius: 18,
+		paddingHorizontal: 14,
+		paddingVertical: 16,
+		backgroundColor: 'rgba(18,26,53,0.95)',
+		borderColor: 'rgba(115,137,172,0.22)',
+	},
+	usersCard: {
+		width: '100%',
+		maxWidth: '100%',
+		alignSelf: 'stretch',
+		borderRadius: 18,
+		borderColor: 'rgba(115,137,172,0.22)',
+		backgroundColor: 'rgba(18,26,53,0.95)',
+		paddingHorizontal: 14,
+		paddingVertical: 16,
+	},
+	cardTitle: {
+		color: '#f3f6ff',
+		fontSize: 16,
+		fontWeight: '800',
+	},
 	subtitle: {
 		color: '#8da2c0',
 		fontSize: 14,
-		marginTop: 2,
+		marginTop: 6,
+		marginBottom: 12,
 	},
-	panel: {
-		borderRadius: 18,
+	formFields: {
+		gap: 10,
+	},
+	fieldLabel: {
+		color: '#a8bbd7',
+		fontSize: 13,
+		fontWeight: '700',
+		marginTop: 4,
+		marginBottom: 8,
+	},
+	rolesWrap: {
+		flexDirection: 'row',
+		flexWrap: 'wrap',
+		gap: 8,
+	},
+	roleChip: {
+		borderRadius: 999,
 		borderWidth: 1,
-		borderColor: 'rgba(115,137,172,0.22)',
-		backgroundColor: 'rgba(18,26,53,0.95)',
-		padding: 16,
+		borderColor: 'rgba(129,151,186,0.28)',
+		paddingHorizontal: 10,
+		paddingVertical: 6,
+		backgroundColor: 'rgba(16,27,52,0.8)',
 	},
-	panelText: {
+	roleChipSelected: {
+		backgroundColor: 'rgba(245,167,16,0.18)',
+		borderColor: 'rgba(245,167,16,0.5)',
+	},
+	roleChipText: {
+		color: '#8ea3c4',
+		fontSize: 12,
+		fontWeight: '700',
+	},
+	roleChipTextSelected: {
+		color: '#ffd166',
+	},
+	createButton: {
+		height: 52,
+		marginTop: 12,
+		marginBottom: 0,
+	},
+	searchField: {
+		marginTop: 10,
+		marginBottom: 12,
+	},
+	emptyText: {
 		color: '#c7d2e7',
 		fontSize: 14,
+		paddingVertical: 12,
+	},
+	userItem: {
+		paddingVertical: 10,
+		borderBottomWidth: 1,
+		borderBottomColor: 'rgba(129,151,186,0.18)',
+	},
+	userHeadRow: {
+		flexDirection: 'row',
+		justifyContent: 'space-between',
+		alignItems: 'center',
+		gap: 10,
+	},
+	userName: {
+		color: '#f2f6ff',
+		fontSize: 14,
+		fontWeight: '800',
+	},
+	userEmail: {
+		color: '#8ea3c4',
+		fontSize: 12,
+		marginTop: 2,
+	},
+	statusPill: {
+		borderRadius: 999,
+		paddingHorizontal: 8,
+		paddingVertical: 4,
+		borderWidth: 1,
+	},
+	statusActive: {
+		backgroundColor: 'rgba(34,197,94,0.2)',
+		borderColor: 'rgba(34,197,94,0.45)',
+	},
+	statusDisabled: {
+		backgroundColor: 'rgba(239,68,68,0.2)',
+		borderColor: 'rgba(239,68,68,0.45)',
+	},
+	statusArchived: {
+		backgroundColor: 'rgba(245,158,11,0.2)',
+		borderColor: 'rgba(245,158,11,0.45)',
+	},
+	statusText: {
+		fontSize: 11,
+		fontWeight: '700',
+	},
+	statusTextActive: {
+		color: '#86efac',
+	},
+	statusTextDisabled: {
+		color: '#fda4af',
+	},
+	statusTextArchived: {
+		color: '#fcd34d',
+	},
+	metaRow: {
+		flexDirection: 'row',
+		flexWrap: 'wrap',
+		marginTop: 6,
+	},
+	metaLabel: {
+		color: '#7f95b7',
+		fontSize: 12,
+	},
+	metaValue: {
+		color: '#b9cae3',
+		fontSize: 12,
+		fontWeight: '700',
+	},
+	actionRow: {
+		marginTop: 8,
+		flexDirection: 'row',
+		gap: 8,
+	},
+	secondaryAction: {
+		paddingHorizontal: 10,
+		paddingVertical: 6,
+		borderRadius: 999,
+		backgroundColor: 'rgba(63,140,255,0.2)',
+		borderWidth: 1,
+		borderColor: 'rgba(63,140,255,0.42)',
+	},
+	secondaryActionText: {
+		color: '#8cc0ff',
+		fontSize: 12,
+		fontWeight: '700',
+	},
+	archiveAction: {
+		backgroundColor: 'rgba(245,158,11,0.2)',
+		borderColor: 'rgba(245,158,11,0.42)',
+	},
+	archiveActionText: {
+		color: '#fcd34d',
+	},
+	deleteAction: {
+		backgroundColor: 'rgba(239,68,68,0.2)',
+		borderColor: 'rgba(239,68,68,0.42)',
+	},
+	deleteActionText: {
+		color: '#fda4af',
+	},
+	editPanel: {
+		marginTop: 10,
+		borderRadius: 12,
+		padding: 12,
+		backgroundColor: 'rgba(10,20,42,0.92)',
+		borderWidth: 1,
+		borderColor: 'rgba(129,151,186,0.22)',
+	},
+	editPanelTitle: {
+		color: '#d3e1f7',
+		fontSize: 12,
+		fontWeight: '700',
+		marginBottom: 8,
+	},
+	editActionsRow: {
+		marginTop: 10,
+		flexDirection: 'row',
+		justifyContent: 'flex-end',
+		gap: 8,
+	},
+	cancelButton: {
+		paddingHorizontal: 10,
+		paddingVertical: 6,
+		borderRadius: 8,
+		backgroundColor: 'rgba(129,151,186,0.16)',
+	},
+	cancelButtonText: {
+		color: '#b7c7df',
+		fontSize: 12,
+		fontWeight: '700',
+	},
+	saveButton: {
+		paddingHorizontal: 12,
+		paddingVertical: 6,
+		borderRadius: 8,
+		backgroundColor: 'rgba(34,197,94,0.22)',
+	},
+	saveButtonText: {
+		color: '#86efac',
+		fontSize: 12,
+		fontWeight: '800',
 	},
 });
