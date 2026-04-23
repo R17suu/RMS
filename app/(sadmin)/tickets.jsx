@@ -11,7 +11,7 @@ import AppCard from '../../components/AppCard';
 import AppTextField from '../../components/AppTextField';
 import AppButton from '../../components/AppButton';
 import AppToast from '../../components/AppToast';
-import { fetchTickets, createTicket, updateTicketStatus } from '../../services/ticketService';
+import { fetchTickets, createTicket, updateTicketStatus, deleteTicketRecord } from '../../services/ticketService';
 
 const SEVERITY_OPTIONS = ['Critical', 'High', 'Medium', 'Low'];
 
@@ -96,6 +96,24 @@ export default function SuperAdminTicketsScreen() {
             showToast('Failed to update ticket status');
             
             // Revert UI on failure (simple refetch)
+            const fetchedTickets = await fetchTickets();
+            setTickets(fetchedTickets);
+        }
+    };
+
+    const handleDeleteTicket = async (ticketId) => {
+        try {
+            // Optimistically update the UI
+            setTickets((prev) => prev.filter(t => t.id !== ticketId));
+            
+            // Delete from Firestore
+            await deleteTicketRecord(ticketId);
+            showToast('Ticket deleted successfully', 'success');
+        } catch (error) {
+            console.error('Error deleting ticket:', error);
+            showToast('Failed to delete ticket');
+            
+            // Revert UI on failure
             const fetchedTickets = await fetchTickets();
             setTickets(fetchedTickets);
         }
@@ -187,7 +205,11 @@ export default function SuperAdminTicketsScreen() {
                 {tickets.length === 0 && !isLoading ? (
                     <Text style={styles.emptyText}>No tickets found.</Text>
                 ) : (
-                    <TicketQueue tickets={tickets} onStatusChange={handleStatusChange} />
+                    <TicketQueue 
+                        tickets={tickets} 
+                        onStatusChange={handleStatusChange} 
+                        onDelete={handleDeleteTicket} 
+                    />
                 )}
             </ScrollView>
         </ThemedView>

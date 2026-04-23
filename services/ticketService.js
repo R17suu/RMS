@@ -4,14 +4,21 @@ import { db } from '../FirebaseConfig';
 const COLLECTION_NAME = 'tickets';
 
 export const fetchTickets = async () => {
-	// Query to get tickets, you could add ordering if you like: query(collection(db, COLLECTION_NAME), orderBy('createdAt', 'desc'))
+	// Query to get tickets
 	const q = query(collection(db, COLLECTION_NAME));
 	const querySnapshot = await getDocs(q);
 	
-	return querySnapshot.docs.map(doc => ({
+	const tickets = querySnapshot.docs.map(doc => ({
 		id: doc.id,
 		...doc.data()
 	}));
+
+	// Sort tickets by createdAt descending (most recent first)
+	return tickets.sort((a, b) => {
+		const timeA = a.createdAt?.seconds || 0;
+		const timeB = b.createdAt?.seconds || 0;
+		return timeB - timeA;
+	});
 };
 
 export const createTicket = async (ticketData) => {

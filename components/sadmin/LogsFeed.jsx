@@ -2,13 +2,21 @@ import { Ionicons } from '@expo/vector-icons';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import AppCard from '../AppCard';
 
+const formatTimestamp = (ts) => {
+    if (!ts) return 'Unknown';
+    if (typeof ts === 'object' && ts.seconds) {
+        return new Date(ts.seconds * 1000).toLocaleString();
+    }
+    return String(ts);
+};
+
 const levelStyles = {
     INFO: { bg: 'rgba(14,165,233,0.2)', text: '#77d6ff', icon: 'information-circle-outline' },
     WARN: { bg: 'rgba(245,158,11,0.2)', text: '#ffd166', icon: 'warning-outline' },
     ERROR: { bg: 'rgba(239,68,68,0.2)', text: '#ff6b76', icon: 'alert-circle-outline' },
 };
 
-export default function LogsFeed({ logs }) {
+export default function LogsFeed({ logs, activeFilter = 'All', onFilterChange }) {
     return (
         <>
             <View style={styles.sectionHeader}>
@@ -17,18 +25,22 @@ export default function LogsFeed({ logs }) {
             </View>
 
             <View style={styles.filtersRow}>
-                <Pressable style={[styles.filterChip, styles.filterChipActive]}>
-                    <Text style={[styles.filterText, styles.filterTextActive]}>All</Text>
-                </Pressable>
-                <Pressable style={styles.filterChip}>
-                    <Text style={styles.filterText}>Info</Text>
-                </Pressable>
-                <Pressable style={styles.filterChip}>
-                    <Text style={styles.filterText}>Warn</Text>
-                </Pressable>
-                <Pressable style={styles.filterChip}>
-                    <Text style={styles.filterText}>Error</Text>
-                </Pressable>
+                {['All', 'INFO', 'WARN', 'ERROR'].map((filter) => {
+                    const isActive = activeFilter === filter;
+                    const displayLabel = filter === 'All' ? 'All' : filter.charAt(0) + filter.slice(1).toLowerCase();
+                    
+                    return (
+                        <Pressable 
+                            key={filter}
+                            style={[styles.filterChip, isActive && styles.filterChipActive]}
+                            onPress={() => onFilterChange && onFilterChange(filter)}
+                        >
+                            <Text style={[styles.filterText, isActive && styles.filterTextActive]}>
+                                {displayLabel}
+                            </Text>
+                        </Pressable>
+                    );
+                })}
             </View>
 
             <AppCard style={styles.logsCard}>
@@ -42,7 +54,7 @@ export default function LogsFeed({ logs }) {
                                     <Ionicons name={level.icon} size={12} color={level.text} />
                                     <Text style={[styles.levelText, { color: level.text }]}>{log.level}</Text>
                                 </View>
-                                <Text style={styles.logTime}>{log.time}</Text>
+                                <Text style={styles.logTime}>{formatTimestamp(log.time || log.createdAt)}</Text>
                             </View>
 
                             <Text style={styles.logMessage}>{log.message}</Text>

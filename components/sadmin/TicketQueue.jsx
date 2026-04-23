@@ -23,7 +23,7 @@ const statusStyles = {
     Resolved: { bg: 'rgba(34,197,94,0.2)', text: '#7ae7a3' },
 };
 
-export default function TicketQueue({ tickets, onStatusChange }) {
+export default function TicketQueue({ tickets, onStatusChange, onDelete }) {
     const handleStatusPress = (ticketId, currentStatus) => {
         if (!onStatusChange) return;
         
@@ -49,17 +49,25 @@ export default function TicketQueue({ tickets, onStatusChange }) {
 
                     return (
                         <Pressable key={ticket.id} style={styles.ticketRow}>
-                            <View style={styles.ticketHeader}>
-                                <Text style={styles.ticketId}>{ticket.id}</Text>
-                                <View style={[styles.badge, { backgroundColor: severity.bg }]}> 
-                                    <Text style={[styles.badgeText, { color: severity.text }]}>{ticket.severity}</Text>
+                            <View style={styles.ticketHeaderWrap}>
+                                <View style={styles.ticketHeader}>
+                                    <Text style={styles.ticketId}>{ticket.id}</Text>
+                                    <View style={[styles.badge, { backgroundColor: severity.bg }]}> 
+                                        <Text style={[styles.badgeText, { color: severity.text }]}>{ticket.severity}</Text>
+                                    </View>
+                                    <Pressable 
+                                        onPress={() => handleStatusPress(ticket.id, ticket.status)}
+                                        style={[styles.badge, { backgroundColor: status.bg }]}
+                                    > 
+                                        <Text style={[styles.badgeText, { color: status.text }]}>{ticket.status}</Text>
+                                    </Pressable>
                                 </View>
-                                <Pressable 
-                                    onPress={() => handleStatusPress(ticket.id, ticket.status)}
-                                    style={[styles.badge, { backgroundColor: status.bg }]}
-                                > 
-                                    <Text style={[styles.badgeText, { color: status.text }]}>{ticket.status}</Text>
-                                </Pressable>
+                                
+                                {onDelete && (
+                                    <Pressable onPress={() => onDelete(ticket.id)} style={styles.deleteButton}>
+                                        <Ionicons name="trash-outline" size={16} color="#ff6b76" />
+                                    </Pressable>
+                                )}
                             </View>
 
                             <Text style={styles.ticketTitle}>{ticket.title}</Text>
@@ -100,11 +108,21 @@ const styles = StyleSheet.create({
         borderBottomWidth: 1,
         borderBottomColor: 'rgba(129,151,186,0.18)',
     },
+    ticketHeaderWrap: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 6,
+    },
     ticketHeader: {
         flexDirection: 'row',
         alignItems: 'center',
         gap: 8,
-        marginBottom: 6,
+    },
+    deleteButton: {
+        padding: 4,
+        borderRadius: 4,
+        backgroundColor: 'rgba(239,68,68,0.1)',
     },
     ticketId: {
         color: '#9db0ce',
