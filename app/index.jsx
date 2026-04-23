@@ -20,7 +20,9 @@ import AppCard from '../components/AppCard';
 import AppButton from '../components/AppButton';
 import AppTextField from '../components/AppTextField';
 import { auth } from '../FirebaseConfig';
-import { signInWithEmailAndPassword } from 'firebase/auth';
+import { signInWithEmailAndPassword, signOut } from 'firebase/auth';
+import { fetchUserRecord } from '../services/userService';
+import { fetchRoleByName } from '../services/roleService';
 
 export default function App() {
     const router = useRouter();
@@ -76,8 +78,38 @@ export default function App() {
 
         try {
             const userCredential = await signInWithEmailAndPassword(auth, username, password);
-            console.log('User signed in:', userCredential.user);
-            router.replace('/(sadmin)/dashboard');
+            const uid = userCredential.user.uid;
+            
+            // 1. Fetch User Record
+            const userRecord = await fetchUserRecord(uid);
+            if (!userRecord) {
+                await signOut(auth);
+                showErrorToast('User record not found in the database.');
+                setIsSigningIn(false);
+                return;
+            }
+            
+            // 2. Check Status
+            if (userRecord.status !== 'Active') {
+                await signOut(auth);
+                showErrorToast('Your account is inactive. Please contact an administrator.');
+                setIsSigningIn(false);
+                return;
+            }
+
+            // 3. Fetch Role & Permissions
+            const roleRecord = await fetchRoleByName(userRecord.role);
+            const permissions = roleRecord?.permissions || [];
+
+            // 4. RBAC Routing
+            if (permissions.includes('manage_tickets') || permissions.includes('view_logs')) {
+                router.replace('/(sadmin)/dashboard');
+            } else if (permissions.includes('view_users') || permissions.includes('create_users')) {
+                router.replace('/(admin)/dashboard');
+            } else {
+                router.replace('/(clerk)/dashboard');
+            }
+            
         } catch (error) {
             console.error('Error signing in:', error);
             showErrorToast(getSignInErrorMessage(error));

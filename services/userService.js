@@ -1,4 +1,4 @@
-import { collection, getDocs, setDoc, updateDoc, doc, deleteDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, getDocs, getDoc, setDoc, updateDoc, doc, deleteDoc, serverTimestamp } from 'firebase/firestore';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { db, secondaryAuth } from '../FirebaseConfig';
 
@@ -12,14 +12,24 @@ export const fetchUsers = async () => {
 	}));
 };
 
+export const fetchUserRecord = async (uid) => {
+	const userDocRef = doc(db, COLLECTION_NAME, uid);
+	const userDocSnap = await getDoc(userDocRef);
+	
+	if (userDocSnap.exists()) {
+		return { id: userDocSnap.id, ...userDocSnap.data() };
+	}
+	return null;
+};
+
 export const createUser = async (userData, password) => {
 	// 1. Create the user in Firebase Auth using the secondary instance
 	const userCredential = await createUserWithEmailAndPassword(
-		secondaryAuth, 
-		userData.email, 
+		secondaryAuth,
+		userData.email,
 		password
 	);
-	
+
 	const uid = userCredential.user.uid;
 
 	// 2. Prepare the data for Firestore
@@ -30,7 +40,7 @@ export const createUser = async (userData, password) => {
 
 	// 3. Save to Firestore using the exact Auth UID as the Document ID
 	await setDoc(doc(db, COLLECTION_NAME, uid), dataWithTimestamp);
-	
+
 	return {
 		id: uid,
 		...dataWithTimestamp
@@ -50,7 +60,7 @@ export const deleteUserRecord = async (userId) => {
 };
 
 export const updateUserPassword = async (userId) => {
-	await updateDoc(doc(db, COLLECTION_NAME, userId), { 
+	await updateDoc(doc(db, COLLECTION_NAME, userId), {
 		passwordUpdated: serverTimestamp(),
 		hasPassword: true
 	});
