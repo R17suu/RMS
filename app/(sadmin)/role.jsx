@@ -1,7 +1,7 @@
 import { useRouter } from 'expo-router';
 import { signOut } from 'firebase/auth';
-import { useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useState, useEffect } from 'react';
+import { Pressable, ScrollView, StyleSheet, Text, View, ActivityIndicator } from 'react-native';
 import AppButton from '../../components/AppButton';
 import AppCard from '../../components/AppCard';
 import AppTextField from '../../components/AppTextField';
@@ -9,6 +9,7 @@ import AppToast from '../../components/AppToast';
 import DashboardHeader from '../../components/sadmin/DashboardHeader';
 import ProfileMenu from '../../components/sadmin/ProfileMenu';
 import { auth } from '../../FirebaseConfig';
+import { fetchRoles, createRole, updateRolePermissions } from '../../services/roleService';
 import ThemedView from '../../components/ThemedView';
 
 const PERMISSION_GROUPS = [
@@ -106,14 +107,24 @@ export default function SuperAdminRoleManagementScreen() {
 	const [toast, setToast] = useState({ message: '', type: 'error' });
 	const [editingRoleId, setEditingRoleId] = useState(null);
 	const [permissionDraft, setPermissionDraft] = useState([]);
-	const [roles, setRoles] = useState([
-		{
-			id: 'ROLE-001',
-			name: 'System Auditor',
-			description: 'Read-only access to logs, tickets, and audit records.',
-			permissions: ['view_logs', 'view_tickets', 'view_audit_reports'],
-		},
-	]);
+	const [roles, setRoles] = useState([]);
+	const [isLoading, setIsLoading] = useState(true);
+
+	useEffect(() => {
+		const loadRoles = async () => {
+			try {
+				const fetchedRoles = await fetchRoles();
+				setRoles(fetchedRoles);
+			} catch (error) {
+				console.error('Error fetching roles:', error);
+				showToast('Failed to load roles');
+			} finally {
+				setIsLoading(false);
+			}
+		};
+
+		loadRoles();
+	}, []);
 
 	const openProfileMenu = () => {
 		setIsProfileMenuOpen(true);
@@ -179,20 +190,27 @@ export default function SuperAdminRoleManagementScreen() {
 		setPermissionDraft([]);
 	};
 
-	const saveRolePermissions = (roleId) => {
+	const saveRolePermissions = async (roleId) => {
 		if (permissionDraft.length === 0) {
 			showToast('Choose at least one permission before saving.');
 			return;
 		}
 
-		setRoles((prev) =>
-			prev.map((role) =>
-				role.id === roleId ? { ...role, permissions: permissionDraft } : role
-			)
-		);
+		try {
+			await updateRolePermissions(roleId, permissionDraft);
 
-		showToast('Role permissions updated.', 'success');
-		cancelPermissionEdit();
+			setRoles((prev) =>
+				prev.map((role) =>
+					role.id === roleId ? { ...role, permissions: permissionDraft } : role
+				)
+			);
+
+			showToast('Role permissions updated.', 'success');
+			cancelPermissionEdit();
+		} catch (error) {
+			console.error('Error updating permissions:', error);
+			showToast('Failed to update permissions');
+		}
 	};
 
 	const handleCreateRole = async () => {
@@ -227,18 +245,22 @@ export default function SuperAdminRoleManagementScreen() {
 		setIsCreatingRole(true);
 
 		try {
-			const newRole = {
-				id: `ROLE-${String(roles.length + 1).padStart(3, '0')}`,
+			const newRoleData = {
 				name: normalizedName,
 				description: normalizedDescription,
-				permissions,
+				permissions
 			};
+
+			const newRole = await createRole(newRoleData);
 
 			setRoles((prev) => [newRole, ...prev]);
 			setRoleName('');
 			setRoleDescription('');
 			setSelectedPermissions([]);
 			showToast('Role created successfully.', 'success');
+		} catch (error) {
+			console.error('Error creating role:', error);
+			showToast('Failed to create role');
 		} finally {
 			setIsCreatingRole(false);
 		}
@@ -311,7 +333,10 @@ export default function SuperAdminRoleManagementScreen() {
 				</AppCard>
 
 				<AppCard style={styles.rolesCard}>
-					<Text style={styles.cardTitle}>Existing Roles ({roles.length})</Text>
+					<View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+						<Text style={styles.cardTitle}>Existing Roles ({roles.length})</Text>
+						{isLoading && <ActivityIndicator size="small" color="#667693" />}
+					</View>
 
 					{roles.map((role) => (
 						<View key={role.id} style={styles.roleItem}>

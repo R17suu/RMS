@@ -2,6 +2,14 @@ import { Ionicons } from '@expo/vector-icons';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import AppCard from '../AppCard';
 
+const formatTimestamp = (ts) => {
+    if (!ts) return 'Unknown';
+    if (typeof ts === 'object' && ts.seconds) {
+        return new Date(ts.seconds * 1000).toLocaleDateString();
+    }
+    return String(ts);
+};
+
 const severityStyles = {
     Critical: { bg: 'rgba(239,68,68,0.2)', text: '#ff6b76' },
     High: { bg: 'rgba(249,115,22,0.2)', text: '#ffa15a' },
@@ -15,7 +23,18 @@ const statusStyles = {
     Resolved: { bg: 'rgba(34,197,94,0.2)', text: '#7ae7a3' },
 };
 
-export default function TicketQueue({ tickets }) {
+export default function TicketQueue({ tickets, onStatusChange }) {
+    const handleStatusPress = (ticketId, currentStatus) => {
+        if (!onStatusChange) return;
+        
+        // Cycle the status
+        let nextStatus = 'Open';
+        if (currentStatus === 'Open') nextStatus = 'Investigating';
+        else if (currentStatus === 'Investigating') nextStatus = 'Resolved';
+        
+        onStatusChange(ticketId, nextStatus);
+    };
+
     return (
         <>
             <View style={styles.sectionHeader}>
@@ -35,13 +54,16 @@ export default function TicketQueue({ tickets }) {
                                 <View style={[styles.badge, { backgroundColor: severity.bg }]}> 
                                     <Text style={[styles.badgeText, { color: severity.text }]}>{ticket.severity}</Text>
                                 </View>
-                                <View style={[styles.badge, { backgroundColor: status.bg }]}> 
+                                <Pressable 
+                                    onPress={() => handleStatusPress(ticket.id, ticket.status)}
+                                    style={[styles.badge, { backgroundColor: status.bg }]}
+                                > 
                                     <Text style={[styles.badgeText, { color: status.text }]}>{ticket.status}</Text>
-                                </View>
+                                </Pressable>
                             </View>
 
                             <Text style={styles.ticketTitle}>{ticket.title}</Text>
-                            <Text style={styles.ticketMeta}>Reported by {ticket.reportedBy} • {ticket.time}</Text>
+                            <Text style={styles.ticketMeta}>Reported by {ticket.reportedBy} • {formatTimestamp(ticket.time || ticket.createdAt)}</Text>
                         </Pressable>
                     );
                 })}

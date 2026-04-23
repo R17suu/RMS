@@ -1,8 +1,8 @@
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { signOut } from 'firebase/auth';
-import { useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useState, useEffect } from 'react';
+import { Pressable, ScrollView, StyleSheet, Text, View, ActivityIndicator } from 'react-native';
 import AppButton from '../../components/AppButton';
 import AppCard from '../../components/AppCard';
 import AppTextField from '../../components/AppTextField';
@@ -10,6 +10,8 @@ import AppToast from '../../components/AppToast';
 import DashboardHeader from '../../components/sadmin/DashboardHeader';
 import ProfileMenu from '../../components/sadmin/ProfileMenu';
 import { auth } from '../../FirebaseConfig';
+import { fetchUsers, createUser, updateUserStatus, updateUserRole, deleteUserRecord, updateUserPassword } from '../../services/userService';
+import { fetchRoles } from '../../services/roleService';
 import ThemedView from '../../components/ThemedView';
 
 const AVAILABLE_ROLES = ['System Auditor', 'Support Supervisor', 'Operations Manager', 'Security Admin'];
@@ -43,28 +45,34 @@ export default function SuperAdminUserManagementScreen() {
 	const [passwordDraft, setPasswordDraft] = useState('');
 	const [passwordConfirmDraft, setPasswordConfirmDraft] = useState('');
 	const [showEditPassword, setShowEditPassword] = useState(false);
-	const [users, setUsers] = useState([
-		{
-			id: 'USR-001',
-			fullName: 'Maria Dela Cruz',
-			email: 'maria.dc@eeu.local',
-			role: 'System Auditor',
-			status: 'Active',
-			lastActive: '3m ago',
-			hasPassword: true,
-			passwordUpdated: '2d ago',
-		},
-		{
-			id: 'USR-002',
-			fullName: 'John Ramirez',
-			email: 'john.ramirez@eeu.local',
-			role: 'Support Supervisor',
-			status: 'Disabled',
-			lastActive: '2d ago',
-			hasPassword: true,
-			passwordUpdated: '5d ago',
-		},
-	]);
+	const [users, setUsers] = useState([]);
+	const [availableRoles, setAvailableRoles] = useState(AVAILABLE_ROLES);
+	const [isLoading, setIsLoading] = useState(true);
+
+	useEffect(() => {
+		const fetchData = async () => {
+			try {
+				const fetchedUsers = await fetchUsers();
+				setUsers(fetchedUsers);
+
+				const fetchedRolesDocs = await fetchRoles();
+				const fetchedRoles = fetchedRolesDocs.map(r => r.name);
+				if (fetchedRoles.length > 0) {
+					setAvailableRoles(fetchedRoles);
+					if (fetchedRoles.includes(selectedRole) === false) {
+						setSelectedRole(fetchedRoles[0]);
+					}
+				}
+			} catch (error) {
+				console.error('Error fetching data:', error);
+				showToast('Failed to load data');
+			} finally {
+				setIsLoading(false);
+			}
+		};
+
+		fetchData();
+	}, []);
 
 	const openProfileMenu = () => {
 		setIsProfileMenuOpen(true);
@@ -132,71 +140,89 @@ export default function SuperAdminUserManagementScreen() {
 		setIsCreatingUser(true);
 
 		try {
-			const newUser = {
-				id: `USR-${String(users.length + 1).padStart(3, '0')}`,
+			const newUserData = {
 				fullName: normalizedName,
 				email: normalizedEmail,
 				role: selectedRole,
 				status: 'Active',
 				lastActive: 'just now',
-				hasPassword: true,
+				hasPassword: true
 			};
+
+			const newUser = await createUser(newUserData, password);
 
 			setUsers((prev) => [newUser, ...prev]);
 			setFullName('');
 			setEmail('');
 			setPassword('');
 			setConfirmPassword('');
-			setSelectedRole('System Auditor');
+			setSelectedRole(availableRoles[0] || 'System Auditor');
 			showToast('User created successfully.', 'success');
+		} catch (error) {
+			console.error('Error creating user:', error);
+			if (error.code === 'auth/email-already-in-use') {
+				showToast('That email address is already registered in Auth.');
+			} else if (error.code === 'auth/weak-password') {
+				showToast('Password is too weak.');
+			} else {
+				showToast('Failed to create user. Check the console.');
+			}
 		} finally {
 			setIsCreatingUser(false);
 		}
 	};
 
-	const toggleUserStatus = (userId) => {
-		setUsers((prev) =>
-			prev.map((user) => {
-				if (user.id !== userId) {
-					return user;
-				}
+	const toggleUserStatus = async (userId) => {
+		const user = users.find(u => u.id === userId);
+		if (!user || user.status === 'Archived') return;
+		
+		const newStatus = user.status === 'Active' ? 'Disabled' : 'Active';
 
-				if (user.status === 'Archived') {
-					return user;
-				}
-
-				return {
-					...user,
-					status: user.status === 'Active' ? 'Disabled' : 'Active',
-				};
-			})
-		);
-	};
-
-	const archiveUser = (userId) => {
-		setUsers((prev) =>
-			prev.map((user) =>
-				user.id === userId ? { ...user, status: 'Archived' } : user
-			)
-		);
-		showToast('User archived.', 'success');
-	};
-
-	const unarchiveUser = (userId) => {
-		setUsers((prev) =>
-			prev.map((user) =>
-				user.id === userId ? { ...user, status: 'Active' } : user
-			)
-		);
-		showToast('User unarchived.', 'success');
-	};
-
-	const deleteUser = (userId) => {
-		setUsers((prev) => prev.filter((user) => user.id !== userId));
-		if (editingUserId === userId) {
-			cancelRoleEdit();
+		try {
+			await updateUserStatus(userId, newStatus);
+			setUsers((prev) =>
+				prev.map((u) => (u.id === userId ? { ...u, status: newStatus } : u))
+			);
+		} catch (error) {
+			console.error('Error toggling status:', error);
+			showToast('Failed to update status');
 		}
-		showToast('User deleted.', 'success');
+	};
+
+	const archiveUser = async (userId) => {
+		try {
+			await updateUserStatus(userId, 'Archived');
+			setUsers((prev) => prev.map((u) => (u.id === userId ? { ...u, status: 'Archived' } : u)));
+			showToast('User archived.', 'success');
+		} catch (error) {
+			console.error('Error archiving user:', error);
+			showToast('Failed to archive user');
+		}
+	};
+
+	const unarchiveUser = async (userId) => {
+		try {
+			await updateUserStatus(userId, 'Active');
+			setUsers((prev) => prev.map((u) => (u.id === userId ? { ...u, status: 'Active' } : u)));
+			showToast('User unarchived.', 'success');
+		} catch (error) {
+			console.error('Error unarchiving user:', error);
+			showToast('Failed to unarchive user');
+		}
+	};
+
+	const deleteUser = async (userId) => {
+		try {
+			await deleteUserRecord(userId);
+			setUsers((prev) => prev.filter((user) => user.id !== userId));
+			if (editingUserId === userId) {
+				cancelRoleEdit();
+			}
+			showToast('User deleted.', 'success');
+		} catch (error) {
+			console.error('Error deleting user:', error);
+			showToast('Failed to delete user');
+		}
 	};
 
 	const startRoleEdit = (user) => {
@@ -209,13 +235,77 @@ export default function SuperAdminUserManagementScreen() {
 		setDraftRole('');
 	};
 
-	const saveUserRole = (userId) => {
-		setUsers((prev) =>
-			prev.map((user) => (user.id === userId ? { ...user, role: draftRole } : user))
-		);
+	const saveUserRole = async (userId) => {
+		try {
+			await updateUserRole(userId, draftRole);
+			setUsers((prev) =>
+				prev.map((user) => (user.id === userId ? { ...user, role: draftRole } : user))
+			);
+			showToast('User role updated.', 'success');
+			cancelRoleEdit();
+		} catch (error) {
+			console.error('Error updating role:', error);
+			showToast('Failed to update role');
+		}
+	};
 
-		showToast('User role updated.', 'success');
-		cancelRoleEdit();
+	const handleGeneratePasswordForCreate = () => {
+		const newPassword = generateRandomPassword();
+		setPassword(newPassword);
+		setConfirmPassword(newPassword);
+		showToast('Password generated and filled.', 'success');
+	};
+
+	const startPasswordEdit = (user) => {
+		setEditingPasswordUserId(user.id);
+		setPasswordDraft('');
+		setPasswordConfirmDraft('');
+		setShowEditPassword(false);
+	};
+
+	const cancelPasswordEdit = () => {
+		setEditingPasswordUserId(null);
+		setPasswordDraft('');
+		setPasswordConfirmDraft('');
+		setShowEditPassword(false);
+	};
+
+	const generatePasswordForEdit = () => {
+		const newPassword = generateRandomPassword();
+		setPasswordDraft(newPassword);
+		setPasswordConfirmDraft(newPassword);
+		showToast('Password generated.', 'success');
+	};
+
+	const saveUserPassword = async (userId) => {
+		const newPassword = passwordDraft.trim();
+
+		if (!newPassword) {
+			showToast('Password cannot be empty.');
+			return;
+		}
+
+		if (newPassword.length < 8) {
+			showToast('Password must be at least 8 characters.');
+			return;
+		}
+
+		if (newPassword !== passwordConfirmDraft) {
+			showToast('Passwords do not match.');
+			return;
+		}
+
+		try {
+			await updateUserPassword(userId);
+			setUsers((prev) =>
+				prev.map((user) => (user.id === userId ? { ...user, hasPassword: true } : user))
+			);
+			showToast('Password changed successfully.', 'success');
+			cancelPasswordEdit();
+		} catch (error) {
+			console.error('Error changing password:', error);
+			showToast('Failed to change password');
+		}
 	};
 
 	const filteredUsers = users.filter((user) => {
@@ -305,11 +395,19 @@ export default function SuperAdminUserManagementScreen() {
 							autoCapitalize="none"
 							autoCorrect={false}
 						/>
+
+						<Pressable
+							onPress={handleGeneratePasswordForCreate}
+							style={styles.generateButton}
+						>
+							<Ionicons name="shuffle-outline" size={14} color="#ffd166" />
+							<Text style={styles.generateButtonText}>Generate Random Password</Text>
+						</Pressable>
 					</View>
 
 					<Text style={styles.fieldLabel}>Assign Role</Text>
 					<View style={styles.rolesWrap}>
-						{AVAILABLE_ROLES.map((role) => {
+						{availableRoles.map((role) => {
 							const isSelected = selectedRole === role;
 
 							return (
@@ -336,7 +434,10 @@ export default function SuperAdminUserManagementScreen() {
 				</AppCard>
 
 				<AppCard style={styles.usersCard}>
-					<Text style={styles.cardTitle}>User Directory ({filteredUsers.length})</Text>
+					<View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+						<Text style={styles.cardTitle}>User Directory ({filteredUsers.length})</Text>
+						{isLoading && <ActivityIndicator size="small" color="#667693" />}
+					</View>
 
 					<AppTextField
 						label="Search"
@@ -394,7 +495,11 @@ export default function SuperAdminUserManagementScreen() {
 									<Text style={styles.metaLabel}> • Password: </Text>
 									<Text style={styles.metaValue}>{user.hasPassword ? 'Set' : 'Not Set'}</Text>
 									<Text style={styles.metaLabel}> • Last active: </Text>
-									<Text style={styles.metaValue}>{user.lastActive}</Text>
+									<Text style={styles.metaValue}>
+										{typeof user.lastActive === 'object' && user.lastActive?.seconds 
+											? new Date(user.lastActive.seconds * 1000).toLocaleDateString() 
+											: String(user.lastActive || 'Unknown')}
+									</Text>
 								</View>
 
 								<View style={styles.actionRow}>
@@ -423,6 +528,13 @@ export default function SuperAdminUserManagementScreen() {
 										<Text style={styles.secondaryActionText}>Change Role</Text>
 									</Pressable>
 
+									<Pressable
+										onPress={() => startPasswordEdit(user)}
+										style={styles.secondaryAction}
+									>
+										<Text style={styles.secondaryActionText}>Change Password</Text>
+									</Pressable>
+
 									{user.status !== 'Archived' ? (
 										<Pressable
 											onPress={() => archiveUser(user.id)}
@@ -444,7 +556,7 @@ export default function SuperAdminUserManagementScreen() {
 									<View style={styles.editPanel}>
 										<Text style={styles.editPanelTitle}>Assign New Role</Text>
 										<View style={styles.rolesWrap}>
-											{AVAILABLE_ROLES.map((role) => {
+											{availableRoles.map((role) => {
 												const isSelected = draftRole === role;
 
 												return (
@@ -467,6 +579,58 @@ export default function SuperAdminUserManagementScreen() {
 											</Pressable>
 											<Pressable style={styles.saveButton} onPress={() => saveUserRole(user.id)}>
 												<Text style={styles.saveButtonText}>Save</Text>
+											</Pressable>
+										</View>
+									</View>
+								) : null}
+
+								{editingPasswordUserId === user.id ? (
+									<View style={styles.editPanel}>
+										<Text style={styles.editPanelTitle}>Change Password</Text>
+										
+										<AppTextField
+											label="New Password"
+											leftIconName="lock-closed-outline"
+											value={passwordDraft}
+											onChangeText={setPasswordDraft}
+											placeholder="Enter new password"
+											placeholderTextColor="#667693"
+											secureTextEntry={!showEditPassword}
+											autoCapitalize="none"
+											autoCorrect={false}
+											rightAccessory={(
+												<Pressable onPress={() => setShowEditPassword((prev) => !prev)}>
+													<Ionicons name={showEditPassword ? 'eye-off-outline' : 'eye-outline'} size={18} color="#8ea3c4" />
+												</Pressable>
+											)}
+										/>
+
+										<AppTextField
+											label="Confirm Password"
+											leftIconName="lock-closed-outline"
+											value={passwordConfirmDraft}
+											onChangeText={setPasswordConfirmDraft}
+											placeholder="Confirm password"
+											placeholderTextColor="#667693"
+											secureTextEntry={!showEditPassword}
+											autoCapitalize="none"
+											autoCorrect={false}
+										/>
+
+										<Pressable
+											onPress={generatePasswordForEdit}
+											style={styles.generateButtonSmall}
+										>
+											<Ionicons name="shuffle-outline" size={12} color="#ffd166" />
+											<Text style={styles.generateButtonSmallText}>Generate Random Password</Text>
+										</Pressable>
+
+										<View style={styles.editActionsRow}>
+											<Pressable style={styles.cancelButton} onPress={cancelPasswordEdit}>
+												<Text style={styles.cancelButtonText}>Cancel</Text>
+											</Pressable>
+											<Pressable style={styles.saveButton} onPress={() => saveUserPassword(user.id)}>
+												<Text style={styles.saveButtonText}>Save Password</Text>
 											</Pressable>
 										</View>
 									</View>
@@ -720,5 +884,41 @@ const styles = StyleSheet.create({
 		color: '#86efac',
 		fontSize: 12,
 		fontWeight: '800',
+	},
+	generateButton: {
+		flexDirection: 'row',
+		alignItems: 'center',
+		justifyContent: 'center',
+		gap: 6,
+		paddingHorizontal: 12,
+		paddingVertical: 8,
+		borderRadius: 8,
+		backgroundColor: 'rgba(245,167,16,0.15)',
+		borderWidth: 1,
+		borderColor: 'rgba(245,167,16,0.3)',
+		marginTop: 8,
+	},
+	generateButtonText: {
+		color: '#ffd166',
+		fontSize: 12,
+		fontWeight: '700',
+	},
+	generateButtonSmall: {
+		flexDirection: 'row',
+		alignItems: 'center',
+		justifyContent: 'center',
+		gap: 6,
+		paddingHorizontal: 10,
+		paddingVertical: 6,
+		borderRadius: 6,
+		backgroundColor: 'rgba(245,167,16,0.12)',
+		borderWidth: 1,
+		borderColor: 'rgba(245,167,16,0.25)',
+		marginTop: 8,
+	},
+	generateButtonSmallText: {
+		color: '#ffd166',
+		fontSize: 11,
+		fontWeight: '700',
 	},
 });
