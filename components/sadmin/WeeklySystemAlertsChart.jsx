@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { StyleSheet, Text, View } from 'react-native';
 import AppCard from '../AppCard';
 
-export default function WeeklyRevenueChart({ data }) {
+export default function WeeklySystemAlertsChart({ data }) {
     return (
         <>
             <View style={styles.sectionHeader}>
