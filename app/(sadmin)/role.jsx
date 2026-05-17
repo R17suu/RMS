@@ -14,28 +14,44 @@ import ThemedView from '../../components/ThemedView';
 
 const PERMISSION_GROUPS = [
 	{
-		title: 'User Access',
+		title: 'Store Operations',
+		permissions: [
+			{ key: 'view_pos', label: 'View POS' },
+			{ key: 'create_sales', label: 'Create Sales (Checkout)' },
+			{ key: 'view_products', label: 'View Products' },
+			{ key: 'create_products', label: 'Create Products' },
+			{ key: 'edit_products', label: 'Edit Products' },
+			{ key: 'delete_products', label: 'Delete Products' },
+			{ key: 'view_inventory', label: 'View Inventory' },
+			{ key: 'add_stock', label: 'Add Stock (Restock)' },
+			{ key: 'view_purchase_requests', label: 'View Draft POs' },
+			{ key: 'approve_purchase_requests', label: 'Approve Draft POs' },
+			{ key: 'reject_purchase_requests', label: 'Reject Draft POs' },
+			{ key: 'view_transactions', label: 'View Transactions' },
+		],
+	},
+	{
+		title: 'Support & System',
+		permissions: [
+			{ key: 'view_tickets', label: 'View Tickets' },
+			{ key: 'create_tickets', label: 'Create Tickets' },
+			{ key: 'update_ticket_status', label: 'Update Ticket Status' },
+			{ key: 'delete_tickets', label: 'Delete Tickets' },
+			{ key: 'view_dashboard', label: 'View Dashboard' },
+			{ key: 'view_logs', label: 'View System Logs' },
+		],
+	},
+	{
+		title: 'Administration',
 		permissions: [
 			{ key: 'view_users', label: 'View Users' },
 			{ key: 'create_users', label: 'Create Users' },
 			{ key: 'edit_users', label: 'Edit Users' },
 			{ key: 'delete_users', label: 'Delete Users' },
-		],
-	},
-	{
-		title: 'Role Access',
-		permissions: [
 			{ key: 'view_roles', label: 'View Roles' },
 			{ key: 'create_roles', label: 'Create Roles' },
 			{ key: 'edit_roles', label: 'Edit Roles' },
 			{ key: 'assign_permissions', label: 'Assign Permissions' },
-		],
-	},
-	{
-		title: 'System Access',
-		permissions: [
-			{ key: 'view_logs', label: 'View Logs' },
-			{ key: 'manage_tickets', label: 'Manage Tickets' },
 		],
 	},
 ];

@@ -23,6 +23,8 @@ import { auth } from '../FirebaseConfig';
 import { signInWithEmailAndPassword, signOut } from 'firebase/auth';
 import { fetchUserRecord } from '../services/userService';
 import { fetchRoleByName } from '../services/roleService';
+import { createLog } from '../services/logService';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function App() {
     const router = useRouter();
@@ -101,10 +103,25 @@ export default function App() {
             const roleRecord = await fetchRoleByName(userRecord.role);
             const permissions = roleRecord?.permissions || [];
 
-            // 4. RBAC Routing
-            if (permissions.includes('manage_tickets') || permissions.includes('view_logs')) {
+            // Save to AsyncStorage for quick access in modules
+            await AsyncStorage.setItem('user_permissions', JSON.stringify(permissions));
+            await AsyncStorage.setItem('user_role', userRecord.role);
+
+            // Log the successful login
+            await createLog({
+                level: 'INFO',
+                message: 'User logged into the system',
+                service: 'Authentication',
+                actor: username
+            });
+
+            // 4. Role-based Directory Routing
+            // We use the role name directly to route to the correct directory bundle.
+            // Strict Conditional Rendering within those bundles will handle the exact feature access.
+            const roleName = userRecord.role?.toLowerCase() || '';
+            if (roleName.includes('super')) {
                 router.replace('/(sadmin)/dashboard');
-            } else if (permissions.includes('view_users') || permissions.includes('create_users')) {
+            } else if (roleName.includes('admin')) {
                 router.replace('/(admin)/dashboard');
             } else {
                 router.replace('/(clerk)/dashboard');
@@ -112,7 +129,16 @@ export default function App() {
             
         } catch (error) {
             console.error('Error signing in:', error);
-            showErrorToast(getSignInErrorMessage(error));
+            const errorMessage = getSignInErrorMessage(error);
+            showErrorToast(errorMessage);
+
+            // Log the failed login attempt
+            await createLog({
+                level: 'WARN',
+                message: `Failed login attempt: ${errorMessage}`,
+                service: 'Authentication',
+                actor: username || 'Unknown'
+            });
         } finally {
             setIsSigningIn(false);
         }

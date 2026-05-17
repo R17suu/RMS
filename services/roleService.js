@@ -1,5 +1,6 @@
 import { collection, getDocs, addDoc, updateDoc, doc, serverTimestamp, query, where } from 'firebase/firestore';
-import { db } from '../FirebaseConfig';
+import { db, auth } from '../FirebaseConfig';
+import { createLog } from './logService';
 
 const COLLECTION_NAME = 'roles';
 
@@ -28,6 +29,14 @@ export const createRole = async (roleData) => {
 		createdAt: serverTimestamp()
 	};
 	const docRef = await addDoc(collection(db, COLLECTION_NAME), dataWithTimestamp);
+
+	await createLog({
+		level: 'INFO',
+		message: `Created new role: ${roleData.name}`,
+		service: 'Roles',
+		actor: auth.currentUser?.email || 'System'
+	});
+
 	return {
 		id: docRef.id,
 		...dataWithTimestamp
@@ -38,5 +47,12 @@ export const updateRolePermissions = async (roleId, permissions) => {
 	const roleRef = doc(db, COLLECTION_NAME, roleId);
 	await updateDoc(roleRef, {
 		permissions: permissions
+	});
+
+	await createLog({
+		level: 'WARN',
+		message: `Modified permissions for role ${roleId}`,
+		service: 'Roles',
+		actor: auth.currentUser?.email || 'System'
 	});
 };

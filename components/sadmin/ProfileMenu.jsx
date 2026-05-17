@@ -1,7 +1,30 @@
 import { Ionicons } from '@expo/vector-icons';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View, ActivityIndicator } from 'react-native';
+import { useState, useEffect } from 'react';
+import { auth } from '../../FirebaseConfig';
+import { fetchUserRecord } from '../../services/userService';
+import { useRouter } from 'expo-router';
 
 export default function ProfileMenu({ onSignOut }) {
+    const router = useRouter();
+    const [userData, setUserData] = useState(null);
+    const [isLoading, setIsLoading] = useState(true);
+
+    useEffect(() => {
+        const loadUser = async () => {
+            if (auth.currentUser?.uid) {
+                try {
+                    const user = await fetchUserRecord(auth.currentUser.uid);
+                    setUserData(user);
+                } catch (error) {
+                    console.error("Error fetching user data:", error);
+                }
+            }
+            setIsLoading(false);
+        };
+        loadUser();
+    }, []);
+
     return (
         <View style={styles.profileMenu}>
             <View style={styles.profileMenuHead}>
@@ -9,10 +32,33 @@ export default function ProfileMenu({ onSignOut }) {
                     <Ionicons name="person-circle" size={28} color="#f5a710" />
                 </View>
                 <View>
-                    <Text style={styles.profileMenuName}>Juan Admin</Text>
-                    <Text style={styles.profileMenuRole}>Admin Module</Text>
+                    {isLoading ? (
+                        <ActivityIndicator size="small" color="#f5a710" />
+                    ) : (
+                        <>
+                            <Text style={styles.profileMenuName}>{userData?.name || 'Unknown User'}</Text>
+                            <Text style={styles.profileMenuRole}>{userData?.role || 'No Role'}</Text>
+                        </>
+                    )}
                 </View>
             </View>
+
+            <View style={styles.menuDivider} />
+
+            {userData?.role !== 'Super Admin' && (
+                <Pressable 
+                    style={styles.menuRow} 
+                    onPress={() => {
+                        const rolePath = userData?.role?.toLowerCase();
+                        if (rolePath === 'admin') router.push('/(admin)/tickets');
+                        else if (rolePath === 'clerk') router.push('/(clerk)/tickets');
+                        else router.push('/(sadmin)/tickets');
+                    }}
+                >
+                    <Ionicons name="help-buoy-outline" size={22} color="#8da2c0" />
+                    <Text style={styles.menuText}>Support Tickets</Text>
+                </Pressable>
+            )}
 
             <View style={styles.menuDivider} />
 
@@ -68,6 +114,17 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         gap: 10,
         paddingVertical: 4,
+    },
+    menuRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 10,
+        paddingVertical: 4,
+    },
+    menuText: {
+        color: '#8da2c0',
+        fontSize: 14,
+        fontWeight: '600',
     },
     signOutText: {
         color: '#ff4d5b',

@@ -1,6 +1,7 @@
 import { collection, getDocs, getDoc, setDoc, updateDoc, doc, deleteDoc, serverTimestamp } from 'firebase/firestore';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
-import { db, secondaryAuth } from '../FirebaseConfig';
+import { db, secondaryAuth, auth } from '../FirebaseConfig';
+import { createLog } from './logService';
 
 const COLLECTION_NAME = 'users';
 
@@ -41,6 +42,13 @@ export const createUser = async (userData, password) => {
 	// 3. Save to Firestore using the exact Auth UID as the Document ID
 	await setDoc(doc(db, COLLECTION_NAME, uid), dataWithTimestamp);
 
+	await createLog({
+		level: 'INFO',
+		message: `Created new user account for ${userData.email}`,
+		service: 'Users',
+		actor: auth.currentUser?.email || 'System'
+	});
+
 	return {
 		id: uid,
 		...dataWithTimestamp
@@ -49,14 +57,35 @@ export const createUser = async (userData, password) => {
 
 export const updateUserStatus = async (userId, status) => {
 	await updateDoc(doc(db, COLLECTION_NAME, userId), { status });
+
+	await createLog({
+		level: 'WARN',
+		message: `Changed user ${userId} status to ${status}`,
+		service: 'Users',
+		actor: auth.currentUser?.email || 'System'
+	});
 };
 
 export const updateUserRole = async (userId, role) => {
 	await updateDoc(doc(db, COLLECTION_NAME, userId), { role });
+
+	await createLog({
+		level: 'WARN',
+		message: `Changed user ${userId} role to ${role}`,
+		service: 'Users',
+		actor: auth.currentUser?.email || 'System'
+	});
 };
 
 export const deleteUserRecord = async (userId) => {
 	await deleteDoc(doc(db, COLLECTION_NAME, userId));
+
+	await createLog({
+		level: 'ERROR',
+		message: `Deleted user account ${userId}`,
+		service: 'Users',
+		actor: auth.currentUser?.email || 'System'
+	});
 };
 
 export const updateUserPassword = async (userId) => {

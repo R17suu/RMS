@@ -11,18 +11,20 @@ import AppCard from '../../components/AppCard';
 import AppTextField from '../../components/AppTextField';
 import AppButton from '../../components/AppButton';
 import AppToast from '../../components/AppToast';
-import { fetchTickets, createTicket, updateTicketStatus, deleteTicketRecord } from '../../services/ticketService';
+import { fetchMyTickets, createTicket } from '../../services/ticketService';
+import { fetchUserRecord } from '../../services/userService';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const SEVERITY_OPTIONS = ['Critical', 'High', 'Medium', 'Low'];
 
 
 
-export default function SuperAdminTicketsScreen() {
+export default function ClerkTicketsScreen() {
     const router = useRouter();
     const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
     const [tickets, setTickets] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [currentUserRecord, setCurrentUserRecord] = useState(null);
     
     // Form state
     const [title, setTitle] = useState('');
@@ -43,11 +45,15 @@ export default function SuperAdminTicketsScreen() {
 
         const loadTickets = async () => {
             try {
-                const fetchedTickets = await fetchTickets();
-                setTickets(fetchedTickets);
+                if (auth.currentUser?.uid) {
+                    const user = await fetchUserRecord(auth.currentUser.uid);
+                    setCurrentUserRecord(user);
+                    const fetchedTickets = await fetchMyTickets(auth.currentUser.uid);
+                    setTickets(fetchedTickets);
+                }
             } catch (error) {
                 console.error('Error fetching tickets:', error);
-                showToast('Failed to load tickets');
+                showToast('Failed to load your tickets');
             } finally {
                 setIsLoading(false);
             }
@@ -76,7 +82,8 @@ export default function SuperAdminTicketsScreen() {
                 title: normalizedTitle,
                 severity: severity,
                 status: 'Open',
-                reportedBy: 'Super Admin', // Hardcoded for now
+                reportedBy: currentUserRecord?.name || 'Clerk User',
+                reportedByUid: auth.currentUser?.uid || 'unknown',
             };
 
             const newTicket = await createTicket(newTicketData);
@@ -93,43 +100,7 @@ export default function SuperAdminTicketsScreen() {
         }
     };
 
-    const handleStatusChange = async (ticketId, nextStatus) => {
-        try {
-            // Optimistically update the UI
-            setTickets((prev) => 
-                prev.map(t => t.id === ticketId ? { ...t, status: nextStatus } : t)
-            );
-            
-            // Update in Firestore
-            await updateTicketStatus(ticketId, nextStatus);
-            showToast(`Ticket status updated to ${nextStatus}`, 'success');
-        } catch (error) {
-            console.error('Error updating status:', error);
-            showToast('Failed to update ticket status');
-            
-            // Revert UI on failure (simple refetch)
-            const fetchedTickets = await fetchTickets();
-            setTickets(fetchedTickets);
-        }
-    };
 
-    const handleDeleteTicket = async (ticketId) => {
-        try {
-            // Optimistically update the UI
-            setTickets((prev) => prev.filter(t => t.id !== ticketId));
-            
-            // Delete from Firestore
-            await deleteTicketRecord(ticketId);
-            showToast('Ticket deleted successfully', 'success');
-        } catch (error) {
-            console.error('Error deleting ticket:', error);
-            showToast('Failed to delete ticket');
-            
-            // Revert UI on failure
-            const fetchedTickets = await fetchTickets();
-            setTickets(fetchedTickets);
-        }
-    };
 
     const openProfileMenu = () => {
         setIsProfileMenuOpen(true);
@@ -166,10 +137,10 @@ export default function SuperAdminTicketsScreen() {
             ) : null}
 
             <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-                <DashboardHeader onProfilePress={openProfileMenu} title="Ticket Center" subtitle="Admin Module" />
+                <DashboardHeader onProfilePress={openProfileMenu} title="Support Tickets" subtitle="Clerk Module" />
                 
                 {permissions.includes('create_tickets') && (
-                    <AppCard style={styles.formCard}>
+                <AppCard style={styles.formCard}>
                     <Text style={styles.cardTitle}>Create New Ticket</Text>
                     <Text style={styles.subtitle}>Report a new bug or system issue.</Text>
 
@@ -221,8 +192,8 @@ export default function SuperAdminTicketsScreen() {
                 ) : (
                     <TicketQueue 
                         tickets={tickets} 
-                        onStatusChange={permissions.includes('update_ticket_status') ? handleStatusChange : null} 
-                        onDelete={permissions.includes('delete_tickets') ? handleDeleteTicket : null} 
+                        onStatusChange={null} 
+                        onDelete={null} 
                     />
                 )}
             </ScrollView>

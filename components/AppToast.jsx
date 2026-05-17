@@ -25,6 +25,7 @@ const TOAST_VARIANTS = {
 
 const AppToast = ({ message, type = 'error', duration = 3200, onHide }) => {
   const opacity = useRef(new Animated.Value(0)).current;
+  const translateY = useRef(new Animated.Value(-20)).current;
 
   useEffect(() => {
     if (!message) {
@@ -33,18 +34,33 @@ const AppToast = ({ message, type = 'error', duration = 3200, onHide }) => {
 
     const variant = TOAST_VARIANTS[type] ? type : 'error';
 
-    Animated.timing(opacity, {
-      toValue: 1,
-      duration: 220,
-      useNativeDriver: true,
-    }).start();
-
-    const timeoutId = setTimeout(() => {
+    Animated.parallel([
       Animated.timing(opacity, {
-        toValue: 0,
+        toValue: 1,
         duration: 220,
         useNativeDriver: true,
-      }).start(() => {
+      }),
+      Animated.spring(translateY, {
+        toValue: 0,
+        friction: 5,
+        tension: 40,
+        useNativeDriver: true,
+      })
+    ]).start();
+
+    const timeoutId = setTimeout(() => {
+      Animated.parallel([
+        Animated.timing(opacity, {
+          toValue: 0,
+          duration: 220,
+          useNativeDriver: true,
+        }),
+        Animated.timing(translateY, {
+          toValue: -20,
+          duration: 220,
+          useNativeDriver: true,
+        })
+      ]).start(() => {
         if (onHide) {
           onHide();
         }
@@ -69,6 +85,7 @@ const AppToast = ({ message, type = 'error', duration = 3200, onHide }) => {
         variant.container,
         {
           opacity,
+          transform: [{ translateY }],
         },
       ]}
     >
@@ -91,7 +108,12 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 10,
+    elevation: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
   },
   toastText: {
     fontSize: 14,
