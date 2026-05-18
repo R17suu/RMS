@@ -9,7 +9,7 @@ import TicketQueue from '../../components/sadmin/TicketQueue';
 import { auth } from '../../FirebaseConfig';
 import ThemedView from '../../components/ThemedView';
 import WeeklySystemAlertsChart from '../../components/sadmin/WeeklySystemAlertsChart';
-import WelcomeBanner from '../../components/sadmin/WelcomeBanner';
+import SharedWelcomeBanner from '../../components/screens/SharedWelcomeBanner';
 import StoreModulesGrid from '../../components/sadmin/StoreModulesGrid';
 import AuthAnomaliesMonitor from '../../components/sadmin/AuthAnomaliesMonitor';
 import SystemHealthWidget from '../../components/sadmin/SystemHealthWidget';
@@ -129,7 +129,12 @@ export default function SuperAdminDashboardScreen() {
 				contentContainerStyle={styles.scrollContent}
 				showsVerticalScrollIndicator={false}
 			>
-                <WelcomeBanner />
+                <SharedWelcomeBanner 
+                    themeColor="#f5a710" 
+                    iconName="shield-account" 
+                    iconFamily="MaterialCommunityIcons" 
+                    iconColor="#07132f" 
+                />
                 
                 {isLoading ? (
                     <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', marginTop: 40 }}>

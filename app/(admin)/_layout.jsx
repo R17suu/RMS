@@ -34,6 +34,7 @@ export default function AdminLayout() {
 				name="pos"
 				options={{
 					title: 'POS',
+					href: null,
 					tabBarIcon: ({ color, size }) => (
 						<Ionicons name="cart" color={color} size={size} />
 					),
@@ -43,6 +44,7 @@ export default function AdminLayout() {
 				name="products"
 				options={{
 					title: 'Products',
+					href: null,
 					tabBarIcon: ({ color, size }) => (
 						<Ionicons name="pricetags" color={color} size={size} />
 					),
@@ -52,6 +54,7 @@ export default function AdminLayout() {
 				name="purchase-requests"
 				options={{
 					title: 'Draft POs',
+					href: null,
 					tabBarIcon: ({ color, size }) => (
 						<Ionicons name="document-text" color={color} size={size} />
 					),
@@ -70,6 +73,7 @@ export default function AdminLayout() {
 				name="inventory"
 				options={{
 					title: 'Inventory',
+					href: null,
 					tabBarIcon: ({ color, size }) => (
 						<Ionicons name="cube" color={color} size={size} />
 					),

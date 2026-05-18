@@ -2,6 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Pressable, StyleSheet, Text, View, ActivityIndicator } from 'react-native';
 import { useState, useEffect } from 'react';
 import { auth } from '../../FirebaseConfig';
+import { onAuthStateChanged } from 'firebase/auth';
 import { fetchUserRecord } from '../../services/userService';
 import { useRouter } from 'expo-router';
 
@@ -11,18 +12,29 @@ export default function ProfileMenu({ onSignOut }) {
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
-        const loadUser = async () => {
-            if (auth.currentUser?.uid) {
+        let isMounted = true;
+        
+        const unsubscribe = onAuthStateChanged(auth, async (user) => {
+            if (user?.uid && isMounted) {
                 try {
-                    const user = await fetchUserRecord(auth.currentUser.uid);
-                    setUserData(user);
+                    const record = await fetchUserRecord(user.uid);
+                    if (isMounted) {
+                        setUserData(record);
+                    }
                 } catch (error) {
                     console.error("Error fetching user data:", error);
+                } finally {
+                    if (isMounted) setIsLoading(false);
                 }
+            } else if (!user && isMounted) {
+                setIsLoading(false);
             }
-            setIsLoading(false);
+        });
+
+        return () => {
+            isMounted = false;
+            unsubscribe();
         };
-        loadUser();
     }, []);
 
     return (
@@ -36,7 +48,11 @@ export default function ProfileMenu({ onSignOut }) {
                         <ActivityIndicator size="small" color="#f5a710" />
                     ) : (
                         <>
-                            <Text style={styles.profileMenuName}>{userData?.name || 'Unknown User'}</Text>
+                            <Text style={styles.profileMenuName}>
+                                {userData 
+                                    ? (userData.fullName || `${userData.firstName || ''} ${userData.lastName || ''}`.trim() || 'Unknown User') 
+                                    : 'Unknown User'}
+                            </Text>
                             <Text style={styles.profileMenuRole}>{userData?.role || 'No Role'}</Text>
                         </>
                     )}

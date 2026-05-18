@@ -3,7 +3,7 @@ import { signOut } from 'firebase/auth';
 import { useState, useEffect } from 'react';
 import { Pressable, ScrollView, StyleSheet, View, ActivityIndicator, Text } from 'react-native';
 import ClerkHeader from '../../components/clerk/ClerkHeader';
-import ClerkWelcomeBanner from '../../components/clerk/ClerkWelcomeBanner';
+import SharedWelcomeBanner from '../../components/screens/SharedWelcomeBanner';
 import ClerkStatsGrid from '../../components/clerk/ClerkStatsGrid';
 import QuickActions from '../../components/clerk/QuickActions';
 import SaleCard from '../../components/clerk/SaleCard';
@@ -146,7 +146,10 @@ export default function ClerkDashboardScreen() {
 				<ClerkHeader onProfilePress={openProfileMenu} />
 			</View>
 			<ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-				<ClerkWelcomeBanner />
+				<SharedWelcomeBanner 
+					themeColor="#60a5fa" 
+					iconName="document-text" 
+				/>
 
 				{isLoading ? (
 					<View style={styles.loadingWrap}>
@@ -159,7 +162,12 @@ export default function ClerkDashboardScreen() {
 						<QuickActions onNavigate={handleNavigate} />
 
 						<AppCard style={styles.recentCard}>
-							<Text style={styles.sectionTitle}>Recent Sales</Text>
+							<View style={styles.sectionHeader}>
+								<Text style={styles.sectionTitle}>Recent Sales</Text>
+								<Pressable onPress={() => router.push('/(clerk)/transactions')}>
+									<Text style={styles.viewAllText}>View All →</Text>
+								</Pressable>
+							</View>
 							{recentSales.length === 0 ? (
 								<Text style={styles.emptyText}>No sales yet today</Text>
 							) : (
@@ -226,7 +234,17 @@ const styles = StyleSheet.create({
 		color: '#f3f6ff',
 		fontSize: 15,
 		fontWeight: '800',
+	},
+	sectionHeader: {
+		flexDirection: 'row',
+		justifyContent: 'space-between',
+		alignItems: 'center',
 		marginBottom: 12,
+	},
+	viewAllText: {
+		color: '#3b82f6',
+		fontSize: 12,
+		fontWeight: '700',
 	},
 	emptyText: {
 		color: '#667693',

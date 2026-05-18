@@ -106,6 +106,7 @@ export default function App() {
             // Save to AsyncStorage for quick access in modules
             await AsyncStorage.setItem('user_permissions', JSON.stringify(permissions));
             await AsyncStorage.setItem('user_role', userRecord.role);
+            await AsyncStorage.setItem('user_first_name', userRecord.firstName || userRecord.fullName || 'User');
 
             // Log the successful login
             await createLog({

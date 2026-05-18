@@ -90,13 +90,24 @@ export default function SaleCard({ sale, onPress }) {
 				<View style={styles.textWrap}>
 					<View style={styles.titleRow}>
 						<Text style={styles.saleTitle}>Sale #{sale.id.slice(0, 8).toUpperCase()}</Text>
-						{sale.status && (
-							<View style={[styles.statusBadge, sale.status === 'Completed' ? styles.statusCompleted : sale.status === 'Rejected' ? styles.statusRejected : styles.statusPending]}>
-								<Text style={[styles.statusText, sale.status === 'Completed' ? styles.statusTextCompleted : sale.status === 'Rejected' ? styles.statusTextRejected : styles.statusTextPending]}>
-									{sale.status}
-								</Text>
-							</View>
-						)}
+						{sale.status && (() => {
+							let badgeStyle = styles.statusPending;
+							let textStyle = styles.statusTextPending;
+							if (sale.status === 'Completed') {
+								badgeStyle = styles.statusCompleted;
+								textStyle = styles.statusTextCompleted;
+							} else if (sale.status === 'Rejected' || sale.status === 'Voided') {
+								badgeStyle = styles.statusRejected;
+								textStyle = styles.statusTextRejected;
+							}
+							return (
+								<View style={[styles.statusBadge, badgeStyle]}>
+									<Text style={[styles.statusText, textStyle]}>
+										{sale.status}
+									</Text>
+								</View>
+							);
+						})()}
 					</View>
 					<Text style={styles.dateText}>{formatDate(sale.createdAt)}</Text>
 					{sale.paymentDetails && (

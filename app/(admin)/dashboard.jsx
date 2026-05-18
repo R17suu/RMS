@@ -3,7 +3,7 @@ import { signOut } from 'firebase/auth';
 import { useState, useEffect } from 'react';
 import { Pressable, ScrollView, StyleSheet, View, ActivityIndicator, Text } from 'react-native';
 import ClerkHeader from '../../components/clerk/ClerkHeader';
-import AdminWelcomeBanner from '../../components/admin/AdminWelcomeBanner';
+import SharedWelcomeBanner from '../../components/screens/SharedWelcomeBanner';
 import ClerkStatsGrid from '../../components/clerk/ClerkStatsGrid';
 import AdminQuickActions from '../../components/admin/AdminQuickActions';
 import SaleCard from '../../components/clerk/SaleCard';
@@ -152,10 +152,13 @@ export default function AdminDashboardScreen() {
 			) : null}
 
 			<View style={styles.headerWrap}>
-				<ClerkHeader onProfilePress={openProfileMenu} />
+				<ClerkHeader onProfilePress={openProfileMenu} subtitle="Admin Module" />
 			</View>
 			<ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-				<AdminWelcomeBanner />
+				<SharedWelcomeBanner 
+					themeColor="#f59e0b" 
+					iconName="document-text" 
+				/>
 
 				{isLoading ? (
 					<View style={styles.loadingWrap}>
@@ -172,7 +175,12 @@ export default function AdminDashboardScreen() {
                         <LowStockAlerts lowStockProducts={lowStockItems} />
 
 						<AppCard style={styles.recentCard}>
-							<Text style={styles.sectionTitle}>Recent Sales</Text>
+							<View style={styles.sectionHeader}>
+								<Text style={styles.sectionTitle}>Recent Sales</Text>
+								<Pressable onPress={() => router.push('/(admin)/transactions')}>
+									<Text style={styles.viewAllText}>View All →</Text>
+								</Pressable>
+							</View>
 							{recentSales.length === 0 ? (
 								<Text style={styles.emptyText}>No sales yet today</Text>
 							) : (
@@ -239,7 +247,17 @@ const styles = StyleSheet.create({
 		color: '#f3f6ff',
 		fontSize: 15,
 		fontWeight: '800',
+	},
+	sectionHeader: {
+		flexDirection: 'row',
+		justifyContent: 'space-between',
+		alignItems: 'center',
 		marginBottom: 12,
+	},
+	viewAllText: {
+		color: '#f59e0b',
+		fontSize: 12,
+		fontWeight: '700',
 	},
 	emptyText: {
 		color: '#667693',

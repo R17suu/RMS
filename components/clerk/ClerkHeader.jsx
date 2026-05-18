@@ -1,13 +1,26 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { useRouter } from 'expo-router';
 
-export default function ClerkHeader({ onProfilePress, title = 'Dashboard', subtitle = 'Clerk Module' }) {
+export default function ClerkHeader({ onProfilePress, title = 'Dashboard', subtitle = 'Clerk Module', showBack = false }) {
+	const router = useRouter();
 	return (
 		<View style={styles.headerRow}>
 			<View style={styles.brandWrap}>
-				<View style={styles.brandBadge}>
-					<Text style={styles.brandText}>EEU</Text>
-				</View>
+				{showBack ? (
+					<Pressable 
+						style={styles.backBtn} 
+						onPress={() => router.back()}
+						accessibilityRole="button"
+						accessibilityLabel="Go back"
+					>
+						<Ionicons name="arrow-back" size={24} color="#f7f9ff" />
+					</Pressable>
+				) : (
+					<View style={styles.brandBadge}>
+						<Text style={styles.brandText}>EEU</Text>
+					</View>
+				)}
 
 				<View>
 					<Text style={styles.title}>{title}</Text>
@@ -48,6 +61,14 @@ const styles = StyleSheet.create({
 		flexDirection: 'row',
 		alignItems: 'center',
 		gap: 10,
+	},
+	backBtn: {
+		width: 38,
+		height: 38,
+		borderRadius: 10,
+		backgroundColor: 'rgba(255,255,255,0.08)',
+		alignItems: 'center',
+		justifyContent: 'center',
 	},
 	brandBadge: {
 		width: 38,

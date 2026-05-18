@@ -177,3 +177,58 @@ export const rejectPurchaseRequest = async (saleId, officerId) => {
 		actor: auth.currentUser?.email || 'System'
 	});
 };
+
+export const voidSale = async (saleId, adminId) => {
+	const saleRef = doc(db, COLLECTION_NAME, saleId);
+	const saleSnap = await getDoc(saleRef);
+
+	if (!saleSnap.exists()) {
+		throw new Error("Sale transaction not found.");
+	}
+
+	const saleData = saleSnap.data();
+	if (saleData.status === 'Voided') {
+		throw new Error("Sale is already voided.");
+	}
+
+	// 1. Update status to Voided
+	await updateDoc(saleRef, {
+		status: 'Voided',
+		voidedBy: adminId,
+		voidedAt: serverTimestamp()
+	});
+
+	// 2. Return stock to products ONLY if it was previously Completed (already deducted)
+	if (saleData.status === 'Completed') {
+		for (const item of saleData.items || []) {
+			const productRef = doc(db, 'products', item.productId);
+			const productSnap = await getDoc(productRef);
+			
+			if (productSnap.exists()) {
+				const currentStock = productSnap.data().stock || 0;
+				const newStock = currentStock + item.quantity;
+				await updateDoc(productRef, { stock: newStock });
+				
+				// Record stock movement (IN)
+				const movementData = {
+					productId: item.productId,
+					type: 'IN',
+					quantity: item.quantity,
+					referenceId: saleId,
+                    referenceNumber: saleData.paymentDetails?.orNumber || 'VOID',
+                    userId: adminId,
+					description: `Voided Sale Reversal`,
+					createdAt: serverTimestamp()
+				};
+				await addDoc(collection(db, 'stock_movements'), movementData);
+			}
+		}
+	}
+
+	await createLog({
+		level: 'WARN',
+		message: `Voided sale transaction ${saleId}`,
+		service: 'Sales',
+		actor: auth.currentUser?.email || 'System'
+	});
+};
