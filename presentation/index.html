@@ -1,0 +1,943 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EEU Records Management System - Final Presentation</title>
+  <link rel="stylesheet" href="styles.css?v=2.0">
+  <style>
+    /* ========== INTERACTIVE SHOWCASE STYLE ========== */
+    .screenshot-showcase {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+      margin-top: 10px;
+    }
+
+    /* Tabs */
+    .showcase-tabs {
+      display: flex;
+      gap: 8px;
+      background: rgba(4, 11, 31, 0.6);
+      border: 1px solid var(--border);
+      padding: 5px;
+      border-radius: 12px;
+    }
+
+    .showcase-tab {
+      background: transparent;
+      border: none;
+      padding: 8px 16px;
+      color: var(--text-secondary);
+      font-size: 13px;
+      font-weight: 600;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      font-family: inherit;
+    }
+
+    .showcase-tab:hover {
+      color: var(--text-primary);
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .showcase-tab.active {
+      color: #fff;
+      background: var(--gradient-1);
+      box-shadow: 0 4px 12px rgba(245, 158, 11, 0.25);
+    }
+
+    /* Panels */
+    .showcase-panels {
+      width: 100%;
+      position: relative;
+      min-height: 400px;
+    }
+
+    .showcase-panel {
+      display: none;
+      width: 100%;
+      animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    .showcase-panel.active {
+      display: flex;
+      justify-content: center;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Phone Mockup */
+    .phone-row {
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      gap: 24px;
+      width: 100%;
+      flex-wrap: wrap;
+    }
+
+    .phone-mockup {
+      width: 160px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .phone-mockup:hover {
+      transform: translateY(-6px);
+    }
+
+    .phone-screen {
+      width: 100%;
+      height: 320px;
+      border: 6px solid #1e293b;
+      border-radius: 20px;
+      overflow: hidden;
+      background: #020b24;
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5), 0 0 0 1px #334155;
+      position: relative;
+    }
+
+    /* Notch */
+    .phone-top-notch {
+      position: absolute;
+      top: 3px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 45px;
+      height: 8px;
+      background: #1e293b;
+      border-radius: 8px;
+      z-index: 10;
+    }
+
+    .phone-screen img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: block;
+    }
+
+    .phone-caption {
+      margin-top: 10px;
+      text-align: center;
+      width: 100%;
+    }
+
+    .phone-caption h4 {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 3px;
+    }
+
+    .phone-caption p {
+      font-size: 11px;
+      color: var(--text-secondary);
+      line-height: 1.4;
+      padding: 0 2px;
+    }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+</head>
+<body>
+
+<div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+
+<div class="presentation" id="presentation">
+
+  <!-- ==================== SLIDE 1: TITLE ==================== -->
+  <div class="slide title-slide active" data-slide="0">
+    <div class="bg-orb orb-1"></div>
+    <div class="bg-orb orb-2"></div>
+    <div class="title-logo">EEU</div>
+    <h1>Records Management<br>System</h1>
+    <p class="subtitle">A Mobile-First Retail Management Application for the Economic Enterprise Unit</p>
+    <div class="title-meta">
+      <span><span class="label">Group Members:</span> Steven Benedict Bernabe, Philip Lee Anthony Artianza, John Pruds Colot, Jino Taer</span>
+      <span><span class="label">Course/Subject:</span> Application Development and Emerging Technologies</span>
+      <span><span class="label">Instructor:</span> Louie Jay Labastida</span>
+      <span><span class="label">Date:</span> May 2026</span>
+    </div>
+  </div>
+
+  <!-- ==================== SLIDE 2: INTRODUCTION ==================== -->
+  <div class="slide" data-slide="1">
+    <div class="bg-orb orb-3"></div>
+    <div class="slide-header">
+      <div class="slide-number">01 — Introduction</div>
+      <h2>What is the <span>EEU RMS</span>?</h2>
+      <p>A comprehensive mobile application designed to digitize and streamline the retail operations of the Economic Enterprise Unit.</p>
+    </div>
+    <div class="two-col">
+      <div class="content-block">
+        <h3>📱 About the Application</h3>
+        <p>The EEU Records Management System (RMS) is a cross-platform mobile application built to manage and automate the daily retail operations of a campus economic enterprise unit — from point-of-sale transactions and inventory tracking to user access control and system monitoring.</p>
+        <br>
+        <p>The application replaces manual record-keeping with a secure, role-based digital system accessible on any mobile device.</p>
+      </div>
+      <div class="content-block">
+        <h3>💡 Why Was It Developed?</h3>
+        <p>Campus enterprise units often rely on manual processes for tracking sales, managing inventory, and maintaining records. This leads to:</p>
+        <ul class="styled-list">
+          <li><span class="list-bullet"></span>Inaccurate sales records and revenue tracking</li>
+          <li><span class="list-bullet"></span>Difficulty monitoring low-stock items</li>
+          <li><span class="list-bullet"></span>No centralized access control for staff</li>
+          <li><span class="list-bullet"></span>Time-consuming report generation</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== SLIDE 3: PROBLEM STATEMENT ==================== -->
+  <div class="slide" data-slide="2">
+    <div class="bg-orb orb-1"></div>
+    <div class="slide-header">
+      <div class="slide-number">02 — Problem Statement</div>
+      <h2>The Problem We <span>Solve</span></h2>
+    </div>
+    <div class="card-grid grid-2">
+      <div class="card">
+        <div class="card-icon amber">📋</div>
+        <h3>Manual Record-Keeping</h3>
+        <p>Sales, inventory, and user records are maintained on paper or spreadsheets, leading to data inconsistencies, loss of records, and difficulty in auditing.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon blue">📊</div>
+        <h3>No Real-Time Monitoring</h3>
+        <p>Management has no way to monitor live sales, inventory levels, or system activity without physically checking records at the store.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon green">🔐</div>
+        <h3>No Access Control</h3>
+        <p>All staff have the same level of access to data and operations, creating security risks and accountability issues for sensitive operations.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon purple">⏱️</div>
+        <h3>Slow Operations</h3>
+        <p>Manual checkout, stock counting, and report generation consume excessive time that could be spent on more productive tasks.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== SLIDE 4: OBJECTIVES ==================== -->
+  <div class="slide" data-slide="3">
+    <div class="bg-orb orb-2"></div>
+    <div class="slide-header">
+      <div class="slide-number">03 — Objectives</div>
+      <h2>Project <span>Objectives</span></h2>
+    </div>
+    <div class="objective-card">
+      <div class="obj-label">🎯 General Objective</div>
+      <p>To develop a mobile-based records management system that digitalizes the retail operations of the Economic Enterprise Unit, providing efficient sales processing, inventory management, and role-based access control.</p>
+    </div>
+    <div class="card-grid grid-2" style="margin-top: 8px;">
+      <div class="objective-card">
+        <div class="obj-label">Specific Objective 1</div>
+        <p>To implement a Point-of-Sale (POS) module that enables fast and accurate sales transactions with real-time receipt generation.</p>
+      </div>
+      <div class="objective-card">
+        <div class="obj-label">Specific Objective 2</div>
+        <p>To develop an inventory management system that tracks stock levels, alerts low-stock items, and manages restocking operations.</p>
+      </div>
+      <div class="objective-card">
+        <div class="obj-label">Specific Objective 3</div>
+        <p>To implement a role-based access control system with three user levels (Super Admin, Admin, Clerk) to ensure data security and accountability.</p>
+      </div>
+      <div class="objective-card">
+        <div class="obj-label">Specific Objective 4</div>
+        <p>To create a real-time dashboard that displays key metrics such as revenue, sales volume, and system health for informed decision-making.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== SLIDE 5: TARGET USERS ==================== -->
+  <div class="slide" data-slide="4">
+    <div class="bg-orb orb-3"></div>
+    <div class="slide-header">
+      <div class="slide-number">04 — Target Users</div>
+      <h2>Who Uses the <span>System</span>?</h2>
+      <p>The RMS is designed for three distinct user roles, each with specific permissions and responsibilities.</p>
+    </div>
+    <div class="card-grid grid-3">
+      <div class="user-card">
+        <div class="user-avatar" style="background: rgba(245, 158, 11, 0.15);">🛡️</div>
+        <h3>Super Admin</h3>
+        <div class="role-badge" style="background: rgba(245, 158, 11, 0.15); color: #f59e0b;">System Administrator</div>
+        <p>System administration and support. Manages users, roles, permissions, tickets, dashboard, and system logs. No store operations.</p>
+        <div class="feature-badges" style="justify-content: center;">
+          <span class="badge">User Mgmt</span>
+          <span class="badge">Role Mgmt</span>
+          <span class="badge">Tickets</span>
+          <span class="badge">Dashboard</span>
+          <span class="badge">System Logs</span>
+        </div>
+      </div>
+      <div class="user-card">
+        <div class="user-avatar" style="background: rgba(59, 130, 246, 0.15);">📋</div>
+        <h3>Admin</h3>
+        <div class="role-badge" style="background: rgba(59, 130, 246, 0.15); color: #3b82f6;">Store Manager</div>
+        <p>Full store operations. Manages POS, products, inventory, restocking, draft purchase orders, transactions, and can create tickets.</p>
+        <div class="feature-badges" style="justify-content: center;">
+          <span class="badge">POS</span>
+          <span class="badge">Products</span>
+          <span class="badge">Inventory</span>
+          <span class="badge">Draft POs</span>
+          <span class="badge">Transactions</span>
+        </div>
+      </div>
+      <div class="user-card">
+        <div class="user-avatar" style="background: rgba(16, 185, 129, 0.15);">🛒</div>
+        <h3>Clerk</h3>
+        <div class="role-badge" style="background: rgba(16, 185, 129, 0.15); color: #10b981;">Cashier / Staff</div>
+        <p>Front-line store operations. Handles POS checkout, manages products, views inventory, restocks, and can create support tickets.</p>
+        <div class="feature-badges" style="justify-content: center;">
+          <span class="badge">POS</span>
+          <span class="badge">Products</span>
+          <span class="badge">Inventory</span>
+          <span class="badge">Restock</span>
+          <span class="badge">Tickets</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== SLIDE 6: MAIN FEATURES ==================== -->
+  <div class="slide" data-slide="5">
+    <div class="bg-orb orb-1"></div>
+    <div class="slide-header">
+      <div class="slide-number">05 — Main Features</div>
+      <h2>Key <span>Features</span></h2>
+    </div>
+    <div class="card-grid grid-4">
+      <div class="card">
+        <div class="card-icon amber">🛒</div>
+        <h3>Point of Sale</h3>
+        <p>Fast checkout system with product search, quantity control, and receipt generation.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon blue">📦</div>
+        <h3>Inventory</h3>
+        <p>Real-time stock tracking, low-stock alerts, and restocking management.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon green">👥</div>
+        <h3>User Management</h3>
+        <p>Create, edit, and delete user accounts with role-based access control.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon purple">🔐</div>
+        <h3>Role Management</h3>
+        <p>Define custom roles with granular permissions (26 available permissions).</p>
+      </div>
+      <div class="card">
+        <div class="card-icon red">📊</div>
+        <h3>Dashboard</h3>
+        <p>Role-specific dashboards with live metrics, weekly charts, and quick actions.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon amber">📝</div>
+        <h3>Sales History</h3>
+        <p>Complete transaction records with filtering, search, and revenue tracking.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon blue">🐛</div>
+        <h3>Ticket System</h3>
+        <p>Bug and problem reporting with status tracking and resolution management.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon green">📋</div>
+        <h3>System Logs</h3>
+        <p>Comprehensive audit trail of all system actions for security and compliance.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== SLIDE 7: SYSTEM FLOWCHART ==================== -->
+  <div class="slide" data-slide="6">
+    <div class="slide-header">
+      <div class="slide-number">06 — System Flowchart</div>
+      <h2>System <span>Flow</span></h2>
+      <p>The complete user journey from login to role-based operations.</p>
+    </div>
+    <div class="flowchart-wrapper">
+      <div class="zoom-controls">
+        <button class="zoom-btn" onclick="zoomChart(0.2)" title="Zoom In">＋</button>
+        <button class="zoom-btn" onclick="zoomChart(-0.2)" title="Zoom Out">－</button>
+        <button class="zoom-btn" onclick="resetZoom()" title="Reset">⟲</button>
+        <span class="zoom-level" id="zoomLevel">100%</span>
+      </div>
+      <div class="flowchart-container" id="flowchartContainer">
+        <div class="flowchart-inner" id="flowchartInner">
+          <div class="mermaid">
+flowchart TD
+    A([Start]) --> B[Open Application]
+    B --> C[Login Screen]
+    C --> D{Enter Email and Password}
+    D --> E{Firebase Authentication}
+    E -->|Invalid| F[Show Error Message]
+    F --> C
+    E -->|Valid| G[Fetch User Role from Firestore]
+    G --> H{Check User Role}
+
+    H -->|Super Admin| SA[Super Admin Dashboard]
+    H -->|Admin| AD[Admin Dashboard]
+    H -->|Clerk| CL[Clerk Dashboard]
+
+    SA --> SAS[Support and System]
+    SA --> SAA[Administration]
+
+    SAS --> SAS1[View Tickets]
+    SAS --> SAS2[Update Ticket Status]
+    SAS --> SAS3[Delete Tickets]
+    SAS --> SAS4[View Dashboard]
+    SAS --> SAS5[View System Logs]
+
+    SAA --> SAA1[View / Create Users]
+    SAA --> SAA2[Edit / Delete Users]
+    SAA --> SAA3[View / Create Roles]
+    SAA --> SAA4[Edit Roles]
+    SAA --> SAA5[Assign Permissions]
+
+    AD --> ADS[Store Operations]
+    AD --> ADT[Support]
+
+    ADS --> ADS1[View POS]
+    ADS1 --> ADS1a[Create Sales - Checkout]
+    ADS --> ADS2[View / Create Products]
+    ADS --> ADS3[Edit / Delete Products]
+    ADS --> ADS4[View Inventory]
+    ADS4 --> ADS4a[Add Stock - Restock]
+    ADS --> ADS5[View Draft POs]
+    ADS5 --> ADS5a[Approve / Reject Draft POs]
+    ADS --> ADS6[View Transactions]
+    ADT --> ADT1[Create Tickets]
+
+    CL --> CLS[Store Operations]
+    CL --> CLT[Support]
+
+    CLS --> CLS1[View POS]
+    CLS1 --> CLS1a[Create Sales - Checkout]
+    CLS --> CLS2[View / Create Products]
+    CLS --> CLS3[Edit / Delete Products]
+    CLS --> CLS4[View Inventory]
+    CLS4 --> CLS4a[Add Stock - Restock]
+    CLS --> CLS5[View Transactions]
+    CLT --> CLT1[Create Tickets]
+
+    SAS1 --> END([End])
+    SAA5 --> END
+    ADS1a --> END
+    ADS6 --> END
+    CLS1a --> END
+    CLS5 --> END
+
+    style A fill:#f59e0b,stroke:#d97706,color:#000,stroke-width:2px
+    style END fill:#10b981,stroke:#059669,color:#000,stroke-width:2px
+    style SA fill:#f59e0b,stroke:#d97706,color:#000,stroke-width:2px
+    style AD fill:#3b82f6,stroke:#2563eb,color:#fff,stroke-width:2px
+    style CL fill:#10b981,stroke:#059669,color:#000,stroke-width:2px
+    style F fill:#ef4444,stroke:#dc2626,color:#fff,stroke-width:2px
+    style H fill:#8b5cf6,stroke:#7c3aed,color:#fff,stroke-width:2px
+    style E fill:#8b5cf6,stroke:#7c3aed,color:#fff,stroke-width:2px
+    style SAS fill:#f59e0b,stroke:#d97706,color:#000,stroke-width:1px
+    style SAA fill:#f59e0b,stroke:#d97706,color:#000,stroke-width:1px
+    style ADS fill:#3b82f6,stroke:#2563eb,color:#fff,stroke-width:1px
+    style ADT fill:#3b82f6,stroke:#2563eb,color:#fff,stroke-width:1px
+    style CLS fill:#10b981,stroke:#059669,color:#000,stroke-width:1px
+    style CLT fill:#10b981,stroke:#059669,color:#000,stroke-width:1px
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== SLIDE 8: DEVELOPMENT PROCESS ==================== -->
+  <div class="slide" data-slide="7">
+    <div class="bg-orb orb-2"></div>
+    <div class="slide-header">
+      <div class="slide-number">07 — Development Process</div>
+      <h2>How We <span>Built</span> It</h2>
+      <p>Our development followed an iterative approach through four key stages.</p>
+    </div>
+    <div class="timeline">
+      <div class="timeline-item">
+        <h4>📐 Planning</h4>
+        <div class="timeline-dot"></div>
+        <p>Requirements gathering, identifying user roles, defining permissions, and planning the database structure and app architecture.</p>
+      </div>
+      <div class="timeline-item">
+        <h4>🎨 Design</h4>
+        <div class="timeline-dot"></div>
+        <p>Creating UI mockups, designing the dark-themed interface, establishing the color scheme, and mapping out the navigation flow.</p>
+      </div>
+      <div class="timeline-item">
+        <h4>💻 Development</h4>
+        <div class="timeline-dot"></div>
+        <p>Building the React Native components, implementing Firebase authentication, integrating Firestore database, and creating the role-based routing system.</p>
+      </div>
+      <div class="timeline-item">
+        <h4>🧪 Testing</h4>
+        <div class="timeline-dot"></div>
+        <p>Testing on multiple devices using Expo Go, verifying role-based access, validating POS transactions, and checking database integrity.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== SLIDE 9: TOOLS & TECHNOLOGIES ==================== -->
+  <div class="slide" data-slide="8">
+    <div class="bg-orb orb-3"></div>
+    <div class="slide-header">
+      <div class="slide-number">08 — Tools & Technologies</div>
+      <h2>Tech <span>Stack</span></h2>
+    </div>
+    <div class="card-grid grid-3">
+      <div class="tech-card">
+        <div class="tech-icon" style="background: rgba(97, 218, 251, 0.15); color: #61dafb;">⚛️</div>
+        <div>
+          <h4>React Native</h4>
+          <p>Cross-platform mobile framework (v0.83)</p>
+        </div>
+      </div>
+      <div class="tech-card">
+        <div class="tech-icon" style="background: rgba(245, 158, 11, 0.15); color: #f59e0b;">📱</div>
+        <div>
+          <h4>Expo SDK 55</h4>
+          <p>Development platform & build tooling</p>
+        </div>
+      </div>
+      <div class="tech-card">
+        <div class="tech-icon" style="background: rgba(255, 196, 0, 0.15); color: #ffc400;">🔥</div>
+        <div>
+          <h4>Firebase Auth</h4>
+          <p>User authentication & session management</p>
+        </div>
+      </div>
+      <div class="tech-card">
+        <div class="tech-icon" style="background: rgba(255, 196, 0, 0.15); color: #ffc400;">🗄️</div>
+        <div>
+          <h4>Cloud Firestore</h4>
+          <p>NoSQL cloud database for real-time data</p>
+        </div>
+      </div>
+      <div class="tech-card">
+        <div class="tech-icon" style="background: rgba(139, 92, 246, 0.15); color: #8b5cf6;">🧭</div>
+        <div>
+          <h4>Expo Router</h4>
+          <p>File-based navigation & routing</p>
+        </div>
+      </div>
+      <div class="tech-card">
+        <div class="tech-icon" style="background: rgba(16, 185, 129, 0.15); color: #10b981;">📦</div>
+        <div>
+          <h4>AsyncStorage</h4>
+          <p>Local data persistence & session caching</p>
+        </div>
+      </div>
+      <div class="tech-card">
+        <div class="tech-icon" style="background: rgba(59, 130, 246, 0.15); color: #3b82f6;">💻</div>
+        <div>
+          <h4>VS Code</h4>
+          <p>Primary code editor & IDE</p>
+        </div>
+      </div>
+      <div class="tech-card">
+        <div class="tech-icon" style="background: rgba(239, 68, 68, 0.15); color: #ef4444;">🌐</div>
+        <div>
+          <h4>JavaScript (ES6+)</h4>
+          <p>Primary programming language</p>
+        </div>
+      </div>
+      <div class="tech-card">
+        <div class="tech-icon" style="background: rgba(75, 85, 99, 0.15); color: #9ca3af;">🐙</div>
+        <div>
+          <h4>Git & GitHub</h4>
+          <p>Version control & collaboration</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== SLIDE 10: SCREENSHOTS ==================== -->
+  <div class="slide" data-slide="9">
+    <div class="slide-header">
+      <div class="slide-number">09 — Application Screenshots</div>
+      <h2>App <span>Preview</span></h2>
+      <p>Key screens from the live application.</p>
+    </div>
+    <div class="screenshot-showcase">
+      <!-- Tab Controls -->
+      <div class="showcase-tabs">
+        <button class="showcase-tab active" onclick="setScreenshotTab('portal')">🔑 Portal & Audit</button>
+        <button class="showcase-tab" onclick="setScreenshotTab('superadmin')">🛡️ Super Admin</button>
+        <button class="showcase-tab" onclick="setScreenshotTab('admin')">📋 Store Manager</button>
+        <button class="showcase-tab" onclick="setScreenshotTab('clerk')">🛒 Cashier POS</button>
+      </div>
+
+      <!-- Tab Content Area -->
+      <div class="showcase-panels">
+        <!-- Tab 1: Portal & Audit -->
+        <div class="showcase-panel active" id="panel-portal">
+          <div class="phone-row">
+            <div class="phone-mockup">
+              <div class="phone-top-notch"></div>
+              <div class="phone-screen">
+                <img src="screenshots/df0e07d0-e197-4feb-a0d5-7a0a8f67e0f0.jpg" alt="Login Screen" />
+              </div>
+              <div class="phone-caption">
+                <h4>1. Login Screen</h4>
+                <p>Email/password credentials gateway utilizing Firebase Auth.</p>
+              </div>
+            </div>
+            <div class="phone-mockup">
+              <div class="phone-top-notch"></div>
+              <div class="phone-screen">
+                <img src="screenshots/98a223e8-9e27-4b5a-9599-700cf31712f9.jpg" alt="System Logs" />
+              </div>
+              <div class="phone-caption">
+                <h4>2. System Audit Logs</h4>
+                <p>Live security monitoring and audit trail of user actions.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 2: Super Admin -->
+        <div class="showcase-panel" id="panel-superadmin">
+          <div class="phone-row">
+            <div class="phone-mockup">
+              <div class="phone-top-notch"></div>
+              <div class="phone-screen">
+                <img src="screenshots/b1f3763d-d94e-41c8-a243-5dba5efe0c4c.jpg" alt="Super Admin Dashboard" />
+              </div>
+              <div class="phone-caption">
+                <h4>1. Admin Dashboard</h4>
+                <p>System metrics monitor by Steven Benedict Bernabe.</p>
+              </div>
+            </div>
+            <div class="phone-mockup">
+              <div class="phone-top-notch"></div>
+              <div class="phone-screen">
+                <img src="screenshots/61d5da58-6b57-4f81-a942-a74ed0721739.jpg" alt="User Management" />
+              </div>
+              <div class="phone-caption">
+                <h4>2. User Management</h4>
+                <p>Manage system users, roles, and registrations.</p>
+              </div>
+            </div>
+            <div class="phone-mockup">
+              <div class="phone-top-notch"></div>
+              <div class="phone-screen">
+                <img src="screenshots/f44bc9dc-7fb9-4bb3-b657-b76aea815362.jpg" alt="Role Management" />
+              </div>
+              <div class="phone-caption">
+                <h4>3. Role & Permissions</h4>
+                <p>Configure custom roles with 26 dynamic permissions.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 3: Store Manager -->
+        <div class="showcase-panel" id="panel-admin">
+          <div class="phone-row">
+            <div class="phone-mockup">
+              <div class="phone-top-notch"></div>
+              <div class="phone-screen">
+                <img src="screenshots/932f162b-d657-4097-8b2c-e94d13ee1545.jpg" alt="Admin Dashboard" />
+              </div>
+              <div class="phone-caption">
+                <h4>1. Manager Dashboard</h4>
+                <p>Samantha Bernadette's live sales and inventory dashboard.</p>
+              </div>
+            </div>
+            <div class="phone-mockup">
+              <div class="phone-top-notch"></div>
+              <div class="phone-screen">
+                <img src="screenshots/ece9de6b-0dde-49af-b370-aeeee971022d.jpg" alt="Sales History" />
+              </div>
+              <div class="phone-caption">
+                <h4>2. Sales History</h4>
+                <p>Detailed sales ledger with receipts and transaction search.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 4: Clerk & POS -->
+        <div class="showcase-panel" id="panel-clerk">
+          <div class="phone-row">
+            <div class="phone-mockup">
+              <div class="phone-top-notch"></div>
+              <div class="phone-screen">
+                <img src="screenshots/53a41164-f227-4316-9c82-9d22654b5d73.jpg" alt="Clerk Dashboard" />
+              </div>
+              <div class="phone-caption">
+                <h4>1. Clerk Dashboard</h4>
+                <p>Samantha Batumbakal's portal and low-stock indicators.</p>
+              </div>
+            </div>
+            <div class="phone-mockup">
+              <div class="phone-top-notch"></div>
+              <div class="phone-screen">
+                <img src="screenshots/b6daa51a-b356-46c5-8d10-42153aeeb0cf.jpg" alt="Point of Sale" />
+              </div>
+              <div class="phone-caption">
+                <h4>2. Point of Sale Terminal</h4>
+                <p>Cashier checkout terminal for items catalog and processing sales.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== SLIDE 11: CHALLENGES ==================== -->
+  <div class="slide" data-slide="10">
+    <div class="bg-orb orb-1"></div>
+    <div class="slide-header">
+      <div class="slide-number">10 — Challenges Encountered</div>
+      <h2>Challenges & <span>Solutions</span></h2>
+    </div>
+    <div style="width: 100%;">
+      <div class="challenge-item">
+        <div class="challenge-num">1</div>
+        <div>
+          <h4>Firebase Authentication Session Conflict</h4>
+          <p><strong>Problem:</strong> Creating a new user in Firebase Auth automatically signs out the current admin. <strong>Solution:</strong> Implemented a secondary Firebase app instance to handle account creation without affecting the admin's active session.</p>
+        </div>
+      </div>
+      <div class="challenge-item">
+        <div class="challenge-num">2</div>
+        <div>
+          <h4>Role-Based Permission System Complexity</h4>
+          <p><strong>Problem:</strong> Implementing 26 granular permissions across 3 user roles with dynamic tab visibility. <strong>Solution:</strong> Stored permissions in AsyncStorage after login and conditionally rendered navigation tabs based on the user's assigned permissions.</p>
+        </div>
+      </div>
+      <div class="challenge-item">
+        <div class="challenge-num">3</div>
+        <div>
+          <h4>Expo Go Version Compatibility</h4>
+          <p><strong>Problem:</strong> The latest Expo SDK 55 was not compatible with the Play Store version of Expo Go. <strong>Solution:</strong> Used web mode for testing and development builds for device testing.</p>
+        </div>
+      </div>
+      <div class="challenge-item">
+        <div class="challenge-num">4</div>
+        <div>
+          <h4>Real-Time Data Synchronization</h4>
+          <p><strong>Problem:</strong> Ensuring inventory updates reflect immediately after POS transactions. <strong>Solution:</strong> Leveraged Firestore's real-time listeners and optimistic UI updates for instant feedback.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== SLIDE 12: CONCLUSION ==================== -->
+  <div class="slide" data-slide="11">
+    <div class="bg-orb orb-1"></div>
+    <div class="bg-orb orb-2"></div>
+    <div class="slide-header" style="text-align: center;">
+      <div class="slide-number">11 — Conclusion</div>
+      <h2>Project <span>Summary</span></h2>
+    </div>
+    <div class="conclusion-card">
+      <h3>What We Accomplished</h3>
+      <p>We successfully developed a fully functional, mobile-first Records Management System that digitizes the retail operations of the Economic Enterprise Unit. The system features secure role-based access control, a complete point-of-sale module, real-time inventory management, and comprehensive system monitoring — all accessible from any mobile device.</p>
+      <h3 style="margin-top: 30px;">Future Improvements</h3>
+      <div class="card-grid grid-3" style="margin-top: 16px; text-align: left;">
+        <div class="card">
+          <h3>📱 Offline Mode</h3>
+          <p>Enable POS transactions without internet connectivity with background sync.</p>
+        </div>
+        <div class="card">
+          <h3>📈 Advanced Reports</h3>
+          <p>Exportable PDF/Excel reports for monthly sales, inventory, and audit logs.</p>
+        </div>
+        <div class="card">
+          <h3>🔔 Push Notifications</h3>
+          <p>Real-time alerts for low stock, new tickets, and purchase order approvals.</p>
+        </div>
+      </div>
+      <div class="thankyou">Thank You!</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ==================== NAVIGATION ==================== -->
+<div class="nav-bar">
+  <button class="nav-btn" id="prevBtn" onclick="changeSlide(-1)" disabled>
+    ← Previous
+  </button>
+  <div class="slide-counter">
+    <span class="current" id="currentSlide">1</span> / <span id="totalSlides">12</span>
+  </div>
+  <button class="nav-btn" id="nextBtn" onclick="changeSlide(1)">
+    Next →
+  </button>
+</div>
+
+<div class="keyboard-hint">
+  Use <kbd>←</kbd> <kbd>→</kbd> arrow keys to navigate
+</div>
+
+<script>
+  // Initialize Mermaid
+  mermaid.initialize({
+    startOnLoad: true,
+    theme: 'dark',
+    themeVariables: {
+      primaryColor: '#f59e0b',
+      primaryTextColor: '#f0f4ff',
+      primaryBorderColor: '#1b2f57',
+      lineColor: '#3b82f6',
+      secondaryColor: '#0d1b35',
+      tertiaryColor: '#0a1628',
+      background: '#0d1b35',
+      mainBkg: '#0d1b35',
+      nodeBorder: '#1b2f57',
+      clusterBkg: '#0a1628',
+      titleColor: '#f0f4ff',
+      edgeLabelBackground: '#0d1b35',
+    },
+    flowchart: {
+      useMaxWidth: true,
+      htmlLabels: true,
+      curve: 'basis',
+    }
+  });
+
+  // Slide Navigation
+  let currentSlide = 0;
+  const slides = document.querySelectorAll('.slide');
+  const totalSlides = slides.length;
+  document.getElementById('totalSlides').textContent = totalSlides;
+
+  function changeSlide(direction) {
+    const newSlide = currentSlide + direction;
+    if (newSlide < 0 || newSlide >= totalSlides) return;
+
+    // Remove all classes from all slides first
+    slides.forEach(s => {
+      s.classList.remove('active', 'prev');
+    });
+
+    // Mark the old slide
+    if (direction > 0) {
+      slides[currentSlide].classList.add('prev');
+    }
+
+    currentSlide = newSlide;
+    slides[currentSlide].classList.add('active');
+
+    updateUI();
+  }
+
+  function updateUI() {
+    document.getElementById('currentSlide').textContent = currentSlide + 1;
+    document.getElementById('prevBtn').disabled = currentSlide === 0;
+    document.getElementById('nextBtn').disabled = currentSlide === totalSlides - 1;
+
+    const progress = ((currentSlide + 1) / totalSlides) * 100;
+    document.getElementById('progressFill').style.width = progress + '%';
+  }
+
+  // Keyboard navigation
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); changeSlide(1); }
+    if (e.key === 'ArrowLeft') { e.preventDefault(); changeSlide(-1); }
+  });
+
+  // Initialize
+  updateUI();
+
+  // ===== FLOWCHART ZOOM & PAN =====
+  let zoomScale = 1;
+  let panX = 0, panY = 0;
+  let isDragging = false;
+  let dragStartX, dragStartY;
+
+  function updateTransform() {
+    const inner = document.getElementById('flowchartInner');
+    if (inner) {
+      inner.style.transform = `translate(${panX}px, ${panY}px) scale(${zoomScale})`;
+    }
+    const label = document.getElementById('zoomLevel');
+    if (label) label.textContent = Math.round(zoomScale * 100) + '%';
+  }
+
+  function zoomChart(delta) {
+    zoomScale = Math.min(3, Math.max(0.3, zoomScale + delta));
+    updateTransform();
+  }
+
+  function resetZoom() {
+    zoomScale = 1; panX = 0; panY = 0;
+    updateTransform();
+  }
+
+  // Mouse wheel zoom
+  const container = document.getElementById('flowchartContainer');
+  if (container) {
+    container.addEventListener('wheel', (e) => {
+      e.preventDefault();
+      const delta = e.deltaY > 0 ? -0.1 : 0.1;
+      zoomScale = Math.min(3, Math.max(0.3, zoomScale + delta));
+      updateTransform();
+    }, { passive: false });
+
+    // Drag to pan
+    container.addEventListener('mousedown', (e) => {
+      isDragging = true;
+      dragStartX = e.clientX - panX;
+      dragStartY = e.clientY - panY;
+      container.style.cursor = 'grabbing';
+    });
+
+    document.addEventListener('mousemove', (e) => {
+      if (!isDragging) return;
+      panX = e.clientX - dragStartX;
+      panY = e.clientY - dragStartY;
+      updateTransform();
+    });
+
+    document.addEventListener('mouseup', () => {
+      isDragging = false;
+      if (container) container.style.cursor = 'grab';
+    });
+  }
+
+  // App Preview Tab Switching
+  function setScreenshotTab(tabId) {
+    // Remove active class from all tabs
+    document.querySelectorAll('.showcase-tab').forEach(btn => {
+      btn.classList.remove('active');
+    });
+    // Remove active class from all panels
+    document.querySelectorAll('.showcase-panel').forEach(panel => {
+      panel.classList.remove('active');
+    });
+
+    // Add active class to clicked tab
+    const activeBtn = Array.from(document.querySelectorAll('.showcase-tab')).find(btn => 
+      btn.getAttribute('onclick').includes(`'${tabId}'`)
+    );
+    if (activeBtn) activeBtn.classList.add('active');
+
+    // Add active class to corresponding panel
+    const activePanel = document.getElementById(`panel-${tabId}`);
+    if (activePanel) activePanel.classList.add('active');
+  }
+</script>
+
+</body>
+</html>

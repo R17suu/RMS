@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <style>
+    body {
+      margin: 0; padding: 40px;
+      background: #ffffff;
+      display: flex; justify-content: center;
+    }
+    .mermaid {
+      font-size: 16px;
+    }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+</head>
+<body>
+  <div class="mermaid">
+flowchart TD
+    A([Start]) --> B[Open Application]
+    B --> C[Login Screen]
+    C --> D{Enter Email and Password}
+    D --> E{Firebase Authentication}
+    E -->|Invalid| F[Show Error Message]
+    F --> C
+    E -->|Valid| G[Fetch User Role from Firestore]
+    G --> H{Check User Role}
+    
+    H -->|Super Admin| SA[Super Admin Dashboard]
+    H -->|Admin| AD[Admin Dashboard]
+    H -->|Clerk| CL[Clerk Dashboard]
+    
+    SA --> SA1[User Management]
+    SA --> SA2[Role Management]
+    SA --> SA3[System Logs]
+    SA --> SA4[Tickets]
+    SA --> SA5[Store Operations]
+    
+    AD --> AD1[Products and Catalog]
+    AD --> AD2[Inventory and Restock]
+    AD --> AD3[Draft Purchase Orders]
+    AD --> AD4[Sales and Transactions]
+    
+    CL --> CL1[Point of Sale]
+    CL --> CL2[Product Catalog]
+    CL --> CL3[Sales History]
+    CL --> CL4[Submit Tickets]
+    
+    CL1 --> POS1[Select Products]
+    POS1 --> POS2[Process Checkout]
+    POS2 --> POS3[Generate Receipt]
+    POS3 --> POS4[Update Inventory]
+    POS4 --> END([End])
+    
+    SA1 --> END
+    SA2 --> END
+    AD1 --> END
+    CL4 --> END
+
+    style A fill:#f59e0b,stroke:#d97706,color:#000,stroke-width:2px
+    style END fill:#10b981,stroke:#059669,color:#000,stroke-width:2px
+    style SA fill:#f59e0b,stroke:#d97706,color:#000,stroke-width:2px
+    style AD fill:#3b82f6,stroke:#2563eb,color:#fff,stroke-width:2px
+    style CL fill:#10b981,stroke:#059669,color:#000,stroke-width:2px
+    style F fill:#ef4444,stroke:#dc2626,color:#fff,stroke-width:2px
+    style H fill:#8b5cf6,stroke:#7c3aed,color:#fff,stroke-width:2px
+    style E fill:#8b5cf6,stroke:#7c3aed,color:#fff,stroke-width:2px
+  </div>
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: 'default',
+      flowchart: {
+        useMaxWidth: false,
+        htmlLabels: true,
+        curve: 'basis',
+        nodeSpacing: 30,
+        rankSpacing: 50,
+      }
+    });
+  </script>
+</body>
+</html>

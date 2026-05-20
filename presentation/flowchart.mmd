@@ -1,0 +1,90 @@
+flowchart TD
+    A([Start]) --> B[Open Application]
+    B --> C[Login Screen]
+    C --> D{Enter Email\nand Password}
+    D --> E{Firebase\nAuthentication}
+    E -->|Invalid| F[Show Error Message]
+    F --> C
+    E -->|Valid| G[Fetch User Role\nfrom Firestore]
+    G --> H{Check User Role}
+
+    H -->|Super Admin| SA[Super Admin\nDashboard]
+    H -->|Admin| AD[Admin\nDashboard]
+    H -->|Clerk| CL[Clerk\nDashboard]
+
+    subgraph SA_GROUP [Super Admin Modules]
+        direction LR
+        subgraph SA_SUPPORT [Support and System]
+            SAS1[View Tickets]
+            SAS2[Update Ticket\nStatus]
+            SAS3[Delete Tickets]
+            SAS4[View Dashboard]
+            SAS5[View System Logs]
+        end
+        subgraph SA_ADMIN [Administration]
+            SAA1[View / Create\nUsers]
+            SAA2[Edit / Delete\nUsers]
+            SAA3[View / Create\nRoles]
+            SAA4[Edit Roles]
+            SAA5[Assign\nPermissions]
+        end
+    end
+
+    subgraph AD_GROUP [Admin Modules]
+        direction LR
+        subgraph AD_STORE [Store Operations]
+            ADS1[View POS] --> ADS1a[Create Sales\nCheckout]
+            ADS2[View / Create\nProducts]
+            ADS3[Edit / Delete\nProducts]
+            ADS4[View Inventory] --> ADS4a[Add Stock\nRestock]
+            ADS5[View Draft POs] --> ADS5a[Approve / Reject\nDraft POs]
+            ADS6[View Transactions]
+        end
+        subgraph AD_SUP [Support]
+            ADT1[Create Tickets]
+        end
+    end
+
+    subgraph CL_GROUP [Clerk Modules]
+        direction LR
+        subgraph CL_STORE [Store Operations]
+            CLS1[View POS] --> CLS1a[Create Sales\nCheckout]
+            CLS2[View / Create\nProducts]
+            CLS3[Edit / Delete\nProducts]
+            CLS4[View Inventory] --> CLS4a[Add Stock\nRestock]
+            CLS5[View Transactions]
+        end
+        subgraph CL_SUP [Support]
+            CLT1[Create Tickets]
+        end
+    end
+
+    SA --> SA_GROUP
+    AD --> AD_GROUP
+    CL --> CL_GROUP
+
+    SA_GROUP --> END([End])
+    AD_GROUP --> END
+    CL_GROUP --> END
+
+    style A fill:#f59e0b,stroke:#d97706,color:#000,stroke-width:2px,font-weight:bold
+    style END fill:#10b981,stroke:#059669,color:#000,stroke-width:2px,font-weight:bold
+    style F fill:#ef4444,stroke:#dc2626,color:#fff,stroke-width:2px
+    style H fill:#8b5cf6,stroke:#7c3aed,color:#fff,stroke-width:2px
+    style E fill:#8b5cf6,stroke:#7c3aed,color:#fff,stroke-width:2px
+
+    style SA fill:#f59e0b,stroke:#d97706,color:#000,stroke-width:2px
+    style AD fill:#3b82f6,stroke:#2563eb,color:#fff,stroke-width:2px
+    style CL fill:#10b981,stroke:#059669,color:#000,stroke-width:2px
+
+    style SA_GROUP fill:#fef3c7,stroke:#f59e0b,color:#000,stroke-width:2px
+    style SA_SUPPORT fill:#fff7ed,stroke:#fb923c,color:#000
+    style SA_ADMIN fill:#fff7ed,stroke:#fb923c,color:#000
+
+    style AD_GROUP fill:#dbeafe,stroke:#3b82f6,color:#000,stroke-width:2px
+    style AD_STORE fill:#eff6ff,stroke:#60a5fa,color:#000
+    style AD_SUP fill:#eff6ff,stroke:#60a5fa,color:#000
+
+    style CL_GROUP fill:#d1fae5,stroke:#10b981,color:#000,stroke-width:2px
+    style CL_STORE fill:#ecfdf5,stroke:#34d399,color:#000
+    style CL_SUP fill:#ecfdf5,stroke:#34d399,color:#000
