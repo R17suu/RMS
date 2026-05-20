@@ -16,6 +16,7 @@
       "supportsTablet": true
     },
     "android": {
+      "package": "com.stevenuniverseuwu.rms",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/android-icon-foreground.png",
@@ -34,6 +35,13 @@
       "backgroundColor": "#040b1f",
       "barStyle": "light-content"
     },
-    "backgroundColor": "#040b1f"
+    "backgroundColor": "#040b1f",
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "5887083b-e8e6-4dc7-8de3-45ed227fbd17"
+      }
+    },
+    "owner": "stevenuniverseuwu"
   }
 }
